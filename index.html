@@ -428,58 +428,56 @@ input[type=range]::-moz-range-thumb{width:12px;height:12px;border-radius:50%;bac
   </div>
 </div>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
-<script>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <script>
-// ════════════════════════════════════════════════
-// TOKEN LIST
-// ════════════════════════════════════════════════
+
+// ══════════════════════════════════════════
+// TOKENS — Binance symbol + Kraken wsname
+// ══════════════════════════════════════════
 const TK=[
-  {s:'BTCUSDT',sym:'BTC',n:'Bitcoin',c:'btc',col:'#f7931a',cgid:'bitcoin'},
-  {s:'ETHUSDT',sym:'ETH',n:'Ethereum',c:'eth',col:'#627eea',cgid:'ethereum'},
-  {s:'SOLUSDT',sym:'SOL',n:'Solana',c:'sol',col:'#9945ff',cgid:'solana'},
-  {s:'XRPUSDT',sym:'XRP',n:'Ripple',c:'xrp',col:'#00aae4',cgid:'ripple'},
-  {s:'BNBUSDT',sym:'BNB',n:'BNB',c:'def',col:'#f3ba2f',cgid:'binancecoin'},
-  {s:'DOGEUSDT',sym:'DOGE',n:'Dogecoin',c:'doge',col:'#c2a200',cgid:'dogecoin'},
-  {s:'ADAUSDT',sym:'ADA',n:'Cardano',c:'def',col:'#0033ad',cgid:'cardano'},
-  {s:'AVAXUSDT',sym:'AVAX',n:'Avalanche',c:'def',col:'#e84142',cgid:'avalanche-2'},
-  {s:'DOTUSDT',sym:'DOT',n:'Polkadot',c:'def',col:'#e6007a',cgid:'polkadot'},
-  {s:'LINKUSDT',sym:'LINK',n:'Chainlink',c:'def',col:'#2a5ada',cgid:'chainlink'},
-  {s:'UNIUSDT',sym:'UNI',n:'Uniswap',c:'def',col:'#ff007a',cgid:'uniswap'},
-  {s:'ATOMUSDT',sym:'ATOM',n:'Cosmos',c:'def',col:'#4a90d9',cgid:'cosmos'},
-  {s:'LTCUSDT',sym:'LTC',n:'Litecoin',c:'def',col:'#bfbbbb',cgid:'litecoin'},
-  {s:'NEARUSDT',sym:'NEAR',n:'NEAR Protocol',c:'def',col:'#00c08b',cgid:'near'},
-  {s:'INJUSDT',sym:'INJ',n:'Injective',c:'def',col:'#00f2fe',cgid:'injective-protocol'},
-  {s:'APTUSDT',sym:'APT',n:'Aptos',c:'def',col:'#00b4d8',cgid:'aptos'},
-  {s:'SUIUSDT',sym:'SUI',n:'Sui',c:'def',col:'#6fbcf0',cgid:'sui'},
-  {s:'ARBUSDT',sym:'ARB',n:'Arbitrum',c:'def',col:'#28a0f0',cgid:'arbitrum'},
-  {s:'OPUSDT',sym:'OP',n:'Optimism',c:'def',col:'#ff0420',cgid:'optimism'},
-  {s:'TIAUSDT',sym:'TIA',n:'Celestia',c:'def',col:'#7b2bf9',cgid:'celestia'},
-  {s:'WIFUSDT',sym:'WIF',n:'dogwifhat',c:'doge',col:'#d4a96a',cgid:'dogwifhat'},
-  {s:'PEPEUSDT',sym:'PEPE',n:'Pepe',c:'doge',col:'#47a537',cgid:'pepe'},
-  {s:'BONKUSDT',sym:'BONK',n:'Bonk',c:'doge',col:'#d35400',cgid:'bonk'},
-  {s:'JUPUSDT',sym:'JUP',n:'Jupiter',c:'def',col:'#c7f284',cgid:'jupiter-exchange-solana'},
-  {s:'TONUSDT',sym:'TON',n:'Toncoin',c:'def',col:'#0098ea',cgid:'the-open-network'},
-  {s:'TRUMPUSDT',sym:'TRUMP',n:'Official Trump',c:'def',col:'#ef4444',cgid:'official-trump'},
-  {s:'ENAUSDT',sym:'ENA',n:'Ethena',c:'def',col:'#8b5cf6',cgid:'ethena'},
-  {s:'MOVEUSDT',sym:'MOVE',n:'Movement',c:'def',col:'#3b82f6',cgid:'movement'},
-  {s:'STRKUSDT',sym:'STRK',n:'Starknet',c:'def',col:'#ec796b',cgid:'starknet'},
-  {s:'MATICUSDT',sym:'MATIC',n:'Polygon',c:'def',col:'#8247e5',cgid:'matic-network'},
-  {s:'AAVEUSDT',sym:'AAVE',n:'Aave',c:'def',col:'#b6509e',cgid:'aave'},
-  {s:'GRTUSDT',sym:'GRT',n:'The Graph',c:'def',col:'#6747ed',cgid:'the-graph'},
-  {s:'FILUSDT',sym:'FIL',n:'Filecoin',c:'def',col:'#0090ff',cgid:'filecoin'},
-  {s:'ICPUSDT',sym:'ICP',n:'Internet Computer',c:'def',col:'#29abe2',cgid:'internet-computer'},
-  {s:'RENDERUSDT',sym:'RENDER',n:'Render',c:'def',col:'#ff5500',cgid:'render-token'},
-  {s:'FETUSDT',sym:'FET',n:'Fetch.ai',c:'def',col:'#1f6feb',cgid:'fetch-ai'},
-  {s:'XLMUSDT',sym:'XLM',n:'Stellar',c:'def',col:'#7d00ff',cgid:'stellar'},
-  {s:'HBARUSDT',sym:'HBAR',n:'Hedera',c:'def',col:'#44aaaa',cgid:'hedera-hashgraph'},
-  {s:'VETUSDT',sym:'VET',n:'VeChain',c:'def',col:'#15bdff',cgid:'vechain'},
-  {s:'ALGOUSDT',sym:'ALGO',n:'Algorand',c:'def',col:'#55aaaa',cgid:'algorand'},
+  {s:'BTCUSDT',sym:'BTC',kr:'XBT/USDT',n:'Bitcoin',c:'btc',col:'#f7931a',cgid:'bitcoin'},
+  {s:'ETHUSDT',sym:'ETH',kr:'ETH/USDT',n:'Ethereum',c:'eth',col:'#627eea',cgid:'ethereum'},
+  {s:'SOLUSDT',sym:'SOL',kr:'SOL/USDT',n:'Solana',c:'sol',col:'#9945ff',cgid:'solana'},
+  {s:'XRPUSDT',sym:'XRP',kr:'XRP/USDT',n:'Ripple',c:'xrp',col:'#00aae4',cgid:'ripple'},
+  {s:'BNBUSDT',sym:'BNB',kr:null,n:'BNB',c:'def',col:'#f3ba2f',cgid:'binancecoin'},
+  {s:'DOGEUSDT',sym:'DOGE',kr:'DOGE/USDT',n:'Dogecoin',c:'doge',col:'#c2a200',cgid:'dogecoin'},
+  {s:'ADAUSDT',sym:'ADA',kr:'ADA/USDT',n:'Cardano',c:'def',col:'#0033ad',cgid:'cardano'},
+  {s:'AVAXUSDT',sym:'AVAX',kr:'AVAX/USDT',n:'Avalanche',c:'def',col:'#e84142',cgid:'avalanche-2'},
+  {s:'DOTUSDT',sym:'DOT',kr:'DOT/USDT',n:'Polkadot',c:'def',col:'#e6007a',cgid:'polkadot'},
+  {s:'LINKUSDT',sym:'LINK',kr:'LINK/USDT',n:'Chainlink',c:'def',col:'#2a5ada',cgid:'chainlink'},
+  {s:'UNIUSDT',sym:'UNI',kr:'UNI/USDT',n:'Uniswap',c:'def',col:'#ff007a',cgid:'uniswap'},
+  {s:'ATOMUSDT',sym:'ATOM',kr:'ATOM/USDT',n:'Cosmos',c:'def',col:'#4a90d9',cgid:'cosmos'},
+  {s:'LTCUSDT',sym:'LTC',kr:'LTC/USDT',n:'Litecoin',c:'def',col:'#bfbbbb',cgid:'litecoin'},
+  {s:'NEARUSDT',sym:'NEAR',kr:'NEAR/USDT',n:'NEAR Protocol',c:'def',col:'#00c08b',cgid:'near'},
+  {s:'INJUSDT',sym:'INJ',kr:'INJ/USDT',n:'Injective',c:'def',col:'#00f2fe',cgid:'injective-protocol'},
+  {s:'APTUSDT',sym:'APT',kr:'APT/USDT',n:'Aptos',c:'def',col:'#00b4d8',cgid:'aptos'},
+  {s:'SUIUSDT',sym:'SUI',kr:'SUI/USDT',n:'Sui',c:'def',col:'#6fbcf0',cgid:'sui'},
+  {s:'ARBUSDT',sym:'ARB',kr:'ARB/USDT',n:'Arbitrum',c:'def',col:'#28a0f0',cgid:'arbitrum'},
+  {s:'OPUSDT',sym:'OP',kr:'OP/USDT',n:'Optimism',c:'def',col:'#ff0420',cgid:'optimism'},
+  {s:'TIAUSDT',sym:'TIA',kr:'TIA/USDT',n:'Celestia',c:'def',col:'#7b2bf9',cgid:'celestia'},
+  {s:'WIFUSDT',sym:'WIF',kr:null,n:'dogwifhat',c:'doge',col:'#d4a96a',cgid:'dogwifhat'},
+  {s:'PEPEUSDT',sym:'PEPE',kr:'PEPE/USDT',n:'Pepe',c:'doge',col:'#47a537',cgid:'pepe'},
+  {s:'BONKUSDT',sym:'BONK',kr:null,n:'Bonk',c:'doge',col:'#d35400',cgid:'bonk'},
+  {s:'JUPUSDT',sym:'JUP',kr:null,n:'Jupiter',c:'def',col:'#c7f284',cgid:'jupiter-exchange-solana'},
+  {s:'TONUSDT',sym:'TON',kr:'TON/USDT',n:'Toncoin',c:'def',col:'#0098ea',cgid:'the-open-network'},
+  {s:'TRUMPUSDT',sym:'TRUMP',kr:null,n:'Official Trump',c:'def',col:'#ef4444',cgid:'official-trump'},
+  {s:'ENAUSDT',sym:'ENA',kr:'ENA/USDT',n:'Ethena',c:'def',col:'#8b5cf6',cgid:'ethena'},
+  {s:'MOVEUSDT',sym:'MOVE',kr:null,n:'Movement',c:'def',col:'#3b82f6',cgid:'movement'},
+  {s:'STRKUSDT',sym:'STRK',kr:null,n:'Starknet',c:'def',col:'#ec796b',cgid:'starknet'},
+  {s:'MATICUSDT',sym:'MATIC',kr:'MATIC/USDT',n:'Polygon',c:'def',col:'#8247e5',cgid:'matic-network'},
+  {s:'AAVEUSDT',sym:'AAVE',kr:'AAVE/USDT',n:'Aave',c:'def',col:'#b6509e',cgid:'aave'},
+  {s:'GRTUSDT',sym:'GRT',kr:'GRT/USDT',n:'The Graph',c:'def',col:'#6747ed',cgid:'the-graph'},
+  {s:'FILUSDT',sym:'FIL',kr:'FIL/USDT',n:'Filecoin',c:'def',col:'#0090ff',cgid:'filecoin'},
+  {s:'ICPUSDT',sym:'ICP',kr:'ICP/USDT',n:'Internet Computer',c:'def',col:'#29abe2',cgid:'internet-computer'},
+  {s:'RENDERUSDT',sym:'RENDER',kr:'RENDER/USDT',n:'Render',c:'def',col:'#ff5500',cgid:'render-token'},
+  {s:'FETUSDT',sym:'FET',kr:'FET/USDT',n:'Fetch.ai',c:'def',col:'#1f6feb',cgid:'fetch-ai'},
+  {s:'XLMUSDT',sym:'XLM',kr:'XLM/USDT',n:'Stellar',c:'def',col:'#7d00ff',cgid:'stellar'},
+  {s:'HBARUSDT',sym:'HBAR',kr:'HBAR/USDT',n:'Hedera',c:'def',col:'#44aaaa',cgid:'hedera-hashgraph'},
+  {s:'VETUSDT',sym:'VET',kr:'VET/USDT',n:'VeChain',c:'def',col:'#15bdff',cgid:'vechain'},
+  {s:'ALGOUSDT',sym:'ALGO',kr:'ALGO/USDT',n:'Algorand',c:'def',col:'#55aaaa',cgid:'algorand'},
 ];
 const TOP=['SOLUSDT','XRPUSDT','BTCUSDT','ETHUSDT','BNBUSDT','DOGEUSDT','WIFUSDT','PEPEUSDT','ARBUSDT','OPUSDT','TRUMPUSDT','TIAUSDT'];
-
 const SIGS=[
   ['RSI (14)','MACD histogram','Volume spike','BB squeeze','Stoch RSI','CCI (20)'],
   ['EMA 9/21 cross','ADX (14)','OBV trend','ROC (12)','VWAP delta','MFI (14)'],
@@ -488,29 +486,41 @@ const SIGS=[
 ];
 const SN=['SCALP','MOMENTUM','BREAKOUT','GRID'];
 
-// ════════════════════════════════════════════════
+// ══════════════════════════════════════════
 // STATE
-// ════════════════════════════════════════════════
+// ══════════════════════════════════════════
 let active=true,autoMode=false,cap=1000,agr=4,si=0,ticks=0;
 let cur=TK.find(t=>t.s==='SOLUSDT');
 let pos=[],logs=[],ftk=[...TK];
 let tg=0,tt=0,tw=0;
 let MC=null,PC=null;
 
-// Price state
-const lp={};          // live price per symbol
-const lp0={};         // reference price at session start (for % change display)
-const ph={};          // price history arrays (100 pts)
-const mk={};          // entry markers
-const td={};          // 24h data {high,low,vol,chg24}
+const lp={},lp0={},ph={},mk={},td={};
 
-let dataOK=false;
-let fetchCount=0;
-let pollInterval=null;
+// Data source state
+let srcMode='INIT'; // BINANCE_WS | KRAKEN_WS | COINGECKO | SIM
+let wsBinance=null,wsKraken=null;
+let binanceOK=false,krakenOK=false;
+let lastTickTime=0;
+let cgFallbackTimer=null;
 
-// ════════════════════════════════════════════════
+// ══════════════════════════════════════════
+// FALLBACK PRICES (realistic April 2025)
+// ══════════════════════════════════════════
+const FB={
+  BTCUSDT:83500,ETHUSDT:1580,SOLUSDT:118,XRPUSDT:2.10,BNBUSDT:590,
+  DOGEUSDT:0.165,ADAUSDT:0.68,AVAXUSDT:20,DOTUSDT:3.8,LINKUSDT:12,
+  UNIUSDT:5.9,ATOMUSDT:4.2,LTCUSDT:78,NEARUSDT:2.4,INJUSDT:10,
+  APTUSDT:4.8,SUIUSDT:2.2,ARBUSDT:0.35,OPUSDT:0.72,TIAUSDT:2.8,
+  WIFUSDT:0.62,PEPEUSDT:0.0000071,BONKUSDT:0.0000125,JUPUSDT:0.51,
+  TONUSDT:3.2,TRUMPUSDT:9.6,ENAUSDT:0.26,MOVEUSDT:0.18,STRKUSDT:0.25,
+  MATICUSDT:0.22,AAVEUSDT:135,GRTUSDT:0.098,FILUSDT:2.8,ICPUSDT:5.2,
+  RENDERUSDT:3.8,FETUSDT:0.62,XLMUSDT:0.27,HBARUSDT:0.16,VETUSDT:0.021,ALGOUSDT:0.19
+};
+
+// ══════════════════════════════════════════
 // HELPERS
-// ════════════════════════════════════════════════
+// ══════════════════════════════════════════
 function fp(v,s){
   if(v===undefined||v===null||isNaN(v)||v===0)return'-';
   if(v>=10000)return'$'+(v/1000).toFixed(1)+'K';
@@ -523,7 +533,7 @@ function fp(v,s){
 }
 function fn(v){
   if(!v||isNaN(v))return'-';
-  if(v>=1e9)return(v/1e9).toFixed(2)+'B';
+  if(v>=1e9)return(v/1e9).toFixed(1)+'B';
   if(v>=1e6)return(v/1e6).toFixed(1)+'M';
   if(v>=1000)return(v/1000).toFixed(1)+'K';
   return v.toFixed(0);
@@ -532,14 +542,46 @@ function st(id,v){const e=document.getElementById(id);if(e)e.textContent=v;}
 function sc(id,c){const e=document.getElementById(id);if(e)e.className=c;}
 function ts(){return new Date().toTimeString().slice(0,8);}
 
-// ════════════════════════════════════════════════
+function setStatus(mode,label){
+  srcMode=mode;
+  const dot=document.getElementById('sdot');
+  const sub=document.getElementById('bsub');
+  const src=document.getElementById('lb-src');
+  const err=document.getElementById('lb-err');
+  if(mode==='BINANCE_WS'||mode==='KRAKEN_WS'){
+    dot.className='sdot live';sub.textContent='LIVE';
+    err.classList.remove('show');
+    src.textContent=label+' \u00b7 '+ts();
+  } else if(mode==='COINGECKO'){
+    dot.className='sdot live';sub.textContent='LIVE';
+    err.classList.remove('show');
+    src.textContent='CoinGecko REST \u00b7 '+ts();
+  } else {
+    dot.className='sdot loading';sub.textContent='SIM';
+    err.classList.add('show');
+    document.getElementById('lb-err-txt').textContent='\u26a0 API indisponible \u2014 simulation r\u00e9aliste';
+    src.textContent='Simulation';
+  }
+}
+
+function applyPrice(sym,price,extra){
+  if(!price||isNaN(price)||price<=0)return;
+  lp[sym]=price;
+  ph[sym].push(price);
+  if(ph[sym].length>100)ph[sym].shift();
+  lastTickTime=Date.now();
+  if(extra){td[sym]={chg24:extra.chg24||0,vol:extra.vol||0,high:extra.high||price,low:extra.low||price};}
+  if(!lp0[sym]||lp0[sym]===FB[sym])lp0[sym]=price;
+}
+
+// ══════════════════════════════════════════
 // ONBOARDING
-// ════════════════════════════════════════════════
+// ══════════════════════════════════════════
 function setA(v){
   document.getElementById('ob-amt').value=v;
   document.querySelectorAll('.ob-p').forEach(b=>{
     const txt=b.textContent.trim();
-    const n=txt.includes('K')?parseFloat(txt)*1000:txt.includes('M')?parseFloat(txt)*1000000:parseFloat(txt.replace('$',''));
+    const n=txt.endsWith('K')?parseFloat(txt)*1000:parseFloat(txt.replace('$',''));
     b.classList.toggle('sel',n===v);
   });
 }
@@ -552,434 +594,361 @@ function startBot(){
   setTimeout(()=>{o.style.display='none';document.getElementById('app').classList.add('on');initApp();},300);
 }
 
-// ════════════════════════════════════════════════
+// ══════════════════════════════════════════
 // INIT
-// ════════════════════════════════════════════════
-// Reasonable fallback prices (close to real as of early 2025)
-const FALLBACK={
-  BTCUSDT:83500,ETHUSDT:1580,SOLUSDT:118,XRPUSDT:2.10,BNBUSDT:590,
-  DOGEUSDT:0.165,ADAUSDT:0.68,AVAXUSDT:20,DOTUSDT:3.8,LINKUSDT:12,
-  UNIUSDT:5.9,ATOMUSDT:4.2,LTCUSDT:78,NEARUSDT:2.4,INJUSDT:10,
-  APTUSDT:4.8,SUIUSDT:2.2,ARBUSDT:0.35,OPUSDT:0.72,TIAUSDT:2.8,
-  WIFUSDT:0.62,PEPEUSDT:0.0000071,BONKUSDT:0.0000125,JUPUSDT:0.51,
-  TONUSDT:3.2,TRUMPUSDT:9.6,ENAUSDT:0.26,MOVEUSDT:0.18,STRKUSDT:0.25,
-  MATICUSDT:0.22,AAVEUSDT:135,GRTUSDT:0.098,FILUSDT:2.8,ICPUSDT:5.2,
-  RENDERUSDT:3.8,FETUSDT:0.62,XLMUSDT:0.27,HBARUSDT:0.16,VETUSDT:0.021,
-  ALGOUSDT:0.19
-};
-
+// ══════════════════════════════════════════
 function initApp(){
   TK.forEach(t=>{
-    const fb=FALLBACK[t.s]||1;
+    const fb=FB[t.s]||1;
     lp[t.s]=fb;lp0[t.s]=fb;
-    ph[t.s]=Array.from({length:100},()=>fb*(1+(Math.random()-.5)*.005));
+    ph[t.s]=Array.from({length:100},()=>fb*(1+(Math.random()-.5)*.003));
     mk[t.s]=[];
-    td[t.s]={high:fb*1.02,low:fb*.98,vol:0,chg24:0};
+    td[t.s]={chg24:0,vol:0,high:fb*1.01,low:fb*.99};
   });
   buildTkBar();initMC();renderSigs();uR();uMetrics();renderPos();
-  addLog('SYS','Capital: $'+fn(cap)+' \u00b7 Chargement des prix...','ts');
+  addLog('SYS','Capital $'+fn(cap)+' \u00b7 Init...','ts');
 
-  // Start fetching real prices
-  fetchPrices();
-  pollInterval=setInterval(fetchPrices,4000);
+  // LAYER 1 — Binance WebSocket
+  connectBinanceWS();
 
-  // Bot tick
+  // LAYER 3 — CoinGecko REST every 8s (always running, fills gaps)
+  fetchCoinGecko();
+  setInterval(fetchCoinGecko,8000);
+
+  // Watchdog: Binance dead 6s → Kraken
+  setInterval(wsWatchdog,3000);
+
   setInterval(botTick,900);
   setInterval(autoAdapt,12000);
 }
 
-// ════════════════════════════════════════════════
-// PRICE FETCHING — multi-source with fallbacks
-// ════════════════════════════════════════════════
+// ══════════════════════════════════════════
+// LAYER 1 — BINANCE WEBSOCKET
+// Streams all top tokens via combined stream
+// ══════════════════════════════════════════
+function connectBinanceWS(){
+  if(wsBinance){try{wsBinance.close();}catch(e){}}
+  // Combined stream: all TOP tokens miniTicker
+  const streams=TOP.map(s=>s.toLowerCase()+'@miniTicker').join('/');
+  const url=`wss://stream.binance.com:9443/stream?streams=${streams}`;
+  wsBinance=new WebSocket(url);
 
-// Source 1: CoinGecko (CORS OK, free, no key needed)
-// Source 2: Binance via allorigins proxy
-// Source 3: Binance via corsproxy.io
-// Source 4: realistic simulation from last known price
+  const timeout=setTimeout(()=>{
+    if(wsBinance.readyState!==WebSocket.OPEN){
+      wsBinance.close();
+      addLog('WS','Binance WS timeout \u2192 Kraken','ts');
+      connectKrakenWS();
+    }
+  },7000);
 
+  wsBinance.onopen=()=>{
+    clearTimeout(timeout);
+    binanceOK=true;
+    setStatus('BINANCE_WS','Binance WS');
+    addLog('LIVE','Binance WebSocket OK \u00b7 stream live','tlive');
+  };
+
+  wsBinance.onmessage=(e)=>{
+    try{
+      const msg=JSON.parse(e.data);
+      const d=msg.data||msg;
+      const sym=d.s; // e.g. "SOLUSDT"
+      const p=parseFloat(d.c||d.lastPrice||d.p);
+      if(!sym||!p||isNaN(p))return;
+      applyPrice(sym,p,null);
+      // Update 24h data from miniTicker fields
+      if(d.h&&d.l){
+        td[sym]={
+          chg24:((parseFloat(d.c)-parseFloat(d.o))/parseFloat(d.o)*100)||0,
+          vol:parseFloat(d.q)||0,
+          high:parseFloat(d.h)||p,
+          low:parseFloat(d.l)||p
+        };
+      }
+      binanceOK=true;
+      if(srcMode!=='BINANCE_WS')setStatus('BINANCE_WS','Binance WS');
+      if(sym===cur.s){uPD();if(MC)uMC();}
+    }catch(err){}
+  };
+
+  wsBinance.onerror=()=>{
+    binanceOK=false;
+    addLog('WS','Binance WS erreur \u2192 Kraken','ts');
+    connectKrakenWS();
+  };
+
+  wsBinance.onclose=()=>{
+    binanceOK=false;
+    if(srcMode==='BINANCE_WS'){
+      setStatus('KRAKEN_WS','Reconnexion...');
+      setTimeout(()=>connectBinanceWS(),8000);
+    }
+  };
+}
+
+// ══════════════════════════════════════════
+// LAYER 2 — KRAKEN WEBSOCKET (backup)
+// Streams available Kraken pairs
+// ══════════════════════════════════════════
+function connectKrakenWS(){
+  if(krakenOK&&wsKraken&&wsKraken.readyState===WebSocket.OPEN)return;
+  if(wsKraken){try{wsKraken.close();}catch(e){}}
+
+  const pairs=TK.filter(t=>t.kr).map(t=>t.kr);
+  wsKraken=new WebSocket('wss://ws.kraken.com/');
+
+  const timeout=setTimeout(()=>{
+    if(wsKraken.readyState!==WebSocket.OPEN){
+      wsKraken.close();
+      addLog('WS','Kraken WS timeout \u2192 CoinGecko REST','ts');
+    }
+  },7000);
+
+  wsKraken.onopen=()=>{
+    clearTimeout(timeout);
+    krakenOK=true;
+    // Subscribe to ticker for all available pairs
+    wsKraken.send(JSON.stringify({
+      event:'subscribe',
+      pair:pairs,
+      subscription:{name:'ticker'}
+    }));
+    if(!binanceOK){
+      setStatus('KRAKEN_WS','Kraken WS');
+      addLog('LIVE','Kraken WebSocket OK \u00b7 backup actif','tlive');
+    }
+  };
+
+  wsKraken.onmessage=(e)=>{
+    try{
+      const msg=JSON.parse(e.data);
+      // Kraken ticker format: [channelID, tickerData, "ticker", "XBT/USDT"]
+      if(!Array.isArray(msg)||msg[2]!=='ticker')return;
+      const pair=msg[3]; // e.g. "XBT/USDT"
+      const tick=msg[1];
+      const p=parseFloat(tick.c[0]); // last trade price
+      if(!p||isNaN(p))return;
+      // Map Kraken pair back to Binance symbol
+      const tkn=TK.find(t=>t.kr===pair);
+      if(!tkn)return;
+      applyPrice(tkn.s,p,{
+        chg24:0,vol:parseFloat(tick.v[1])||0,
+        high:parseFloat(tick.h[1])||p,
+        low:parseFloat(tick.l[1])||p
+      });
+      krakenOK=true;
+      if(!binanceOK&&srcMode!=='KRAKEN_WS')setStatus('KRAKEN_WS','Kraken WS');
+      if(tkn.s===cur.s){uPD();if(MC)uMC();}
+    }catch(err){}
+  };
+
+  wsKraken.onerror=()=>{krakenOK=false;};
+  wsKraken.onclose=()=>{
+    krakenOK=false;
+    if(!binanceOK)setTimeout(()=>connectKrakenWS(),10000);
+  };
+}
+
+// ══════════════════════════════════════════
+// LAYER 3 — COINGECKO REST (safety net)
+// Runs always every 8s. Fills any gaps.
+// ══════════════════════════════════════════
 const CG_IDS=TK.map(t=>t.cgid).filter(Boolean).join(',');
 
 async function fetchCoinGecko(){
-  const url=`https://api.coingecko.com/api/v3/simple/price?ids=${CG_IDS}&vs_currencies=usd&include_24hr_change=true&include_24hr_vol=true&include_high_24hr=true&include_low_24hr=true`;
-  const r=await fetch(url,{signal:AbortSignal.timeout(6000)});
-  if(!r.ok)throw new Error('CG '+r.status);
-  const data=await r.json();
-  let updated=0;
-  TK.forEach(t=>{
-    if(!t.cgid||!data[t.cgid])return;
-    const d=data[t.cgid];
-    const p=d.usd;
-    if(!p||isNaN(p))return;
-    applyPrice(t.s,p,{
-      chg24:d.usd_24h_change||0,
-      vol:d.usd_24h_vol||0,
-      high:d.usd_24h_high||p*1.02,
-      low:d.usd_24h_low||p*.98
+  try{
+    const url=`https://api.coingecko.com/api/v3/simple/price?ids=${CG_IDS}&vs_currencies=usd&include_24hr_change=true&include_24hr_vol=true&include_high_24hr=true&include_low_24hr=true`;
+    const r=await fetch(url,{signal:AbortSignal.timeout(7000)});
+    if(!r.ok)throw new Error('CG '+r.status);
+    const data=await r.json();
+    let n=0;
+    TK.forEach(t=>{
+      if(!t.cgid||!data[t.cgid])return;
+      const d=data[t.cgid];
+      const p=d.usd;
+      if(!p||isNaN(p))return;
+      // Only apply if WS hasn't updated this recently (don't overwrite fresh WS data)
+      const age=Date.now()-lastTickTime;
+      if(age>5000||!binanceOK&&!krakenOK){
+        applyPrice(t.s,p,{
+          chg24:d.usd_24h_change||0,
+          vol:d.usd_24h_vol||0,
+          high:d.usd_24h_high||p*1.02,
+          low:d.usd_24h_low||p*.98
+        });
+        n++;
+      }
     });
-    updated++;
-  });
-  return updated;
-}
-
-async function fetchBinanceProxy(){
-  // Try allorigins wrapping Binance ticker endpoint
-  const binUrl=encodeURIComponent('https://api.binance.com/api/v3/ticker/24hr');
-  const proxyUrl=`https://api.allorigins.win/raw?url=${binUrl}`;
-  const r=await fetch(proxyUrl,{signal:AbortSignal.timeout(8000)});
-  if(!r.ok)throw new Error('proxy '+r.status);
-  const data=await r.json();
-  if(!Array.isArray(data))throw new Error('bad format');
-  const map={};data.forEach(d=>map[d.symbol]=d);
-  let updated=0;
-  TK.forEach(t=>{
-    const d=map[t.s];if(!d)return;
-    const p=parseFloat(d.lastPrice);
-    if(!p||isNaN(p))return;
-    applyPrice(t.s,p,{
-      chg24:parseFloat(d.priceChangePercent)||0,
-      vol:parseFloat(d.quoteVolume)||0,
-      high:parseFloat(d.highPrice)||p*1.02,
-      low:parseFloat(d.lowPrice)||p*.98
-    });
-    updated++;
-  });
-  return updated;
-}
-
-async function fetchBinanceDirect(){
-  // Some environments allow direct Binance
-  const r=await fetch('https://api.binance.com/api/v3/ticker/24hr',{signal:AbortSignal.timeout(5000)});
-  if(!r.ok)throw new Error('direct '+r.status);
-  const data=await r.json();
-  const map={};data.forEach(d=>map[d.symbol]=d);
-  let updated=0;
-  TK.forEach(t=>{
-    const d=map[t.s];if(!d)return;
-    const p=parseFloat(d.lastPrice);
-    if(!p||isNaN(p))return;
-    applyPrice(t.s,p,{
-      chg24:parseFloat(d.priceChangePercent)||0,
-      vol:parseFloat(d.quoteVolume)||0,
-      high:parseFloat(d.highPrice)||p*1.02,
-      low:parseFloat(d.lowPrice)||p*.98
-    });
-    updated++;
-  });
-  return updated;
-}
-
-function applyPrice(symbol, price, extra){
-  if(!price||isNaN(price)||price<=0)return;
-  lp[symbol]=price;
-  // Keep history rolling
-  ph[symbol].push(price);
-  if(ph[symbol].length>100)ph[symbol].shift();
-  if(extra){
-    td[symbol]={
-      chg24:extra.chg24||0,
-      vol:extra.vol||0,
-      high:extra.high||price,
-      low:extra.low||price
-    };
+    if(n>0&&!binanceOK&&!krakenOK){
+      setStatus('COINGECKO','CoinGecko');
+      if(n===1)addLog('LIVE','CoinGecko REST \u00b7 '+n+' prix','tlive');
+      uPD();if(MC)uMC();uMetrics();renderPos();buildTkBar();
+    }
+  }catch(e){
+    // CoinGecko also failed — pure simulation
+    if(!binanceOK&&!krakenOK){
+      simulateTick();
+      setStatus('SIM','');
+      uPD();if(MC)uMC();uMetrics();renderPos();
+    }
   }
 }
 
-// Small realistic price drift when API fails (keeps chart alive)
+// ══════════════════════════════════════════
+// SIMULATION (last resort)
+// ══════════════════════════════════════════
 function simulateTick(){
   TK.forEach(t=>{
-    const p=lp[t.s];
-    if(!p)return;
+    const p=lp[t.s];if(!p)return;
     const vol=p>1000?0.0004:p>10?0.0008:p>1?0.0012:0.002;
-    const drift=(Math.random()-.499)*vol;
-    const newP=p*(1+drift);
-    lp[t.s]=Math.max(newP,FALLBACK[t.s]*0.5);
+    lp[t.s]=Math.max(p*(1+(Math.random()-.499)*vol),FB[t.s]*.4);
     ph[t.s].push(lp[t.s]);
     if(ph[t.s].length>100)ph[t.s].shift();
   });
 }
 
-let lastFetchOK=0;
-let srcLabel='Chargement...';
-
-async function fetchPrices(){
-  fetchCount++;
-  // Try sources in order
-  let ok=false;
-
-  // Try 1: Direct Binance (works in many environments)
-  if(!ok){
-    try{
-      const n=await fetchBinanceDirect();
-      if(n>5){ok=true;srcLabel='Binance Direct \u00b7 '+ts();dataOK=true;}
-    }catch(e){}
+// ══════════════════════════════════════════
+// WATCHDOG — Binance dead → Kraken
+// ══════════════════════════════════════════
+function wsWatchdog(){
+  const dead=Date.now()-lastTickTime>6000&&lastTickTime>0;
+  if(dead&&binanceOK){
+    binanceOK=false;
+    addLog('WS','Binance WS mort \u2192 Kraken activ\u00e9','ts');
+    connectKrakenWS();
   }
-
-  // Try 2: CoinGecko (CORS-friendly, rate limit ~30req/min)
-  if(!ok){
-    try{
-      const n=await fetchCoinGecko();
-      if(n>5){ok=true;srcLabel='CoinGecko \u00b7 '+ts();dataOK=true;}
-    }catch(e){}
-  }
-
-  // Try 3: Binance via allorigins proxy
-  if(!ok){
-    try{
-      const n=await fetchBinanceProxy();
-      if(n>5){ok=true;srcLabel='Binance Proxy \u00b7 '+ts();dataOK=true;}
-    }catch(e){}
-  }
-
-  if(ok){
-    lastFetchOK=Date.now();
-    document.getElementById('lb-err').classList.remove('show');
-    document.getElementById('sdot').className='sdot live';
-    st('bsub','LIVE');
-    st('lb-src',srcLabel);
-    if(!lp0[cur.s]||lp0[cur.s]===FALLBACK[cur.s]){
-      // Set reference price on first real fetch
-      TK.forEach(t=>{lp0[t.s]=lp[t.s];});
-    }
-  } else {
-    // All sources failed: use realistic simulation
-    simulateTick();
-    document.getElementById('lb-err').classList.add('show');
-    st('lb-err-txt','\u26a0 API indisponible \u2014 simulation r\u00e9aliste active');
-    if(fetchCount===1){
-      document.getElementById('sdot').className='sdot loading';
-      st('bsub','SIMULATION');
-      srcLabel='Simulation (API inaccessible)';
-    }
-  }
-
-  // Always update UI with whatever price we have
-  uPD();
-  if(MC)uMC();
-  uMetrics();
-  renderPos();
-  buildTkBar();
 }
 
-// ════════════════════════════════════════════════
-// KLINES — real historical candles
-// ════════════════════════════════════════════════
+// ══════════════════════════════════════════
+// KLINES — real candles for chart
+// ══════════════════════════════════════════
 async function fetchKlines(symbol,limit=100){
   try{
-    const url=`https://api.binance.com/api/v3/klines?symbol=${symbol}&interval=1m&limit=${limit}`;
-    const r=await fetch(url,{signal:AbortSignal.timeout(5000)});
+    const r=await fetch(`https://api.binance.com/api/v3/klines?symbol=${symbol}&interval=1m&limit=${limit}`,{signal:AbortSignal.timeout(5000)});
     if(!r.ok)throw new Error(r.status);
-    const data=await r.json();
-    return data.map(k=>parseFloat(k[4]));
+    const d=await r.json();
+    return d.map(k=>parseFloat(k[4]));
   }catch(e){
-    // Try proxy
+    // Kraken OHLC fallback
     try{
-      const u=encodeURIComponent(`https://api.binance.com/api/v3/klines?symbol=${symbol}&interval=1m&limit=${limit}`);
-      const r=await fetch(`https://api.allorigins.win/raw?url=${u}`,{signal:AbortSignal.timeout(7000)});
-      const data=await r.json();
-      return data.map(k=>parseFloat(k[4]));
+      const tkn=TK.find(t=>t.s===symbol);
+      if(!tkn||!tkn.kr)throw new Error('no kr');
+      const r=await fetch(`https://api.kraken.com/0/public/OHLC?pair=${tkn.kr.replace('/','')}&interval=1`,{signal:AbortSignal.timeout(5000)});
+      const d=await r.json();
+      const key=Object.keys(d.result).find(k=>k!=='last');
+      return d.result[key].slice(-limit).map(c=>parseFloat(c[4]));
     }catch(e2){return null;}
   }
 }
 
-// ════════════════════════════════════════════════
+// ══════════════════════════════════════════
 // TOKEN BAR
-// ════════════════════════════════════════════════
+// ══════════════════════════════════════════
 function buildTkBar(){
   const bar=document.getElementById('tkbar');
   bar.innerHTML=TOP.map(s=>{
     const t=TK.find(x=>x.s===s);if(!t)return'';
-    const a=s===cur.s;
-    return`<button class="tkbtn ${a?'a-'+t.c:''}" onclick="selTk('${s}')">${t.sym}</button>`;
+    return`<button class="tkbtn ${s===cur.s?'a-'+t.c:''}" onclick="selTk('${s}')">${t.sym}</button>`;
   }).join('')+`<button class="tkbtn" onclick="openTkm()" style="border-style:dashed;color:var(--t3);">+ Autres</button>`;
 }
 
 function selTk(s){
   const t=TK.find(x=>x.s===s);if(!t)return;
-  cur=t;buildTkBar();uPD();
-  if(MC)uMC();
-  // Load real klines for this token
-  fetchKlines(s,100).then(closes=>{
-    if(closes&&closes.length>10){
-      ph[s]=closes;
-      if(MC&&s===cur.s)uMC();
-    }
-  });
+  cur=t;buildTkBar();uPD();if(MC)uMC();
+  // Re-subscribe Binance WS to include new token if needed
+  if(binanceOK&&!TOP.includes(s)){
+    // For non-TOP tokens: fetch klines only
+  }
+  fetchKlines(s,100).then(c=>{if(c&&c.length>10){ph[s]=c;if(MC&&s===cur.s)uMC();}});
   addLog('STRAT','Token \u2192 '+t.sym+'/USDT','tst');
 }
 
-// ════════════════════════════════════════════════
+// ══════════════════════════════════════════
 // PRICE DISPLAY
-// ════════════════════════════════════════════════
+// ══════════════════════════════════════════
 function uPD(){
-  const p=lp[cur.s];
-  if(!p||isNaN(p))return;
+  const p=lp[cur.s];if(!p||isNaN(p))return;
   const d=td[cur.s]||{};
-  const chg=d.chg24||0;
   st('cprice',fp(p,cur.sym));
   const el=document.getElementById('cchg');
+  const chg=d.chg24||0;
   el.textContent=(chg>=0?'+':'')+chg.toFixed(2)+'%';
   el.className='cchg '+(chg>=0?'pos':'neg');
-  st('vtag','VOL 24H '+(d.vol?fn(d.vol):''));
-  const hi=d.high||p,lo=d.low||p;
-  st('mktcap','H:'+fp(hi,cur.sym)+' L:'+fp(lo,cur.sym));
+  st('vtag','VOL '+(d.vol?fn(d.vol):''));
+  st('mktcap','H:'+fp(d.high||p,cur.sym)+' L:'+fp(d.low||p,cur.sym));
 }
 
-// ════════════════════════════════════════════════
-// RSI & INDICATORS (computed from real price history)
-// ════════════════════════════════════════════════
-function calcRSI(prices,period=14){
-  if(!prices||prices.length<period+2)return 50;
-  let gains=0,losses=0;
-  for(let i=prices.length-period;i<prices.length;i++){
-    const d=prices[i]-prices[i-1];
-    if(d>0)gains+=d;else losses+=Math.abs(d);
+// ══════════════════════════════════════════
+// INDICATORS (real math on real prices)
+// ══════════════════════════════════════════
+function calcRSI(px,period=14){
+  if(!px||px.length<period+2)return 50;
+  let g=0,l=0;
+  for(let i=px.length-period;i<px.length;i++){
+    const d=px[i]-px[i-1];
+    if(d>0)g+=d;else l+=Math.abs(d);
   }
-  if(losses===0)return 99;
-  if(gains===0)return 1;
-  return 100-(100/(1+(gains/losses)));
+  if(l===0)return 99;if(g===0)return 1;
+  return 100-(100/(1+(g/l)));
 }
-function calcEMA(prices,period){
-  if(!prices||prices.length<period)return prices?prices[prices.length-1]:0;
+function calcEMA(px,period){
+  if(!px||px.length<period)return px?px[px.length-1]:0;
   const k=2/(period+1);
-  let ema=prices.slice(0,period).reduce((a,b)=>a+b,0)/period;
-  for(let i=period;i<prices.length;i++){ema=prices[i]*k+ema*(1-k);}
+  let ema=px.slice(0,period).reduce((a,b)=>a+b,0)/period;
+  for(let i=period;i<px.length;i++)ema=px[i]*k+ema*(1-k);
   return ema;
 }
-function calcSMA(prices,period){
-  if(!prices||prices.length<period)return prices?prices[prices.length-1]:0;
-  return prices.slice(-period).reduce((a,b)=>a+b,0)/period;
+function calcSMA(px,period){
+  if(!px||px.length<period)return px?px[px.length-1]:0;
+  return px.slice(-period).reduce((a,b)=>a+b,0)/period;
 }
-function calcVol(prices,period=20){
-  const sl=prices.slice(-period);
+function calcVol(px,period=20){
+  const sl=px.slice(-period);
   const avg=sl.reduce((a,b)=>a+b,0)/sl.length;
   return Math.sqrt(sl.reduce((a,b)=>a+(b-avg)**2,0)/sl.length)/avg;
 }
 
-// ════════════════════════════════════════════════
-// MAIN CHART
-// ════════════════════════════════════════════════
-const tpslPlugin={id:'tpsl',afterDraw(chart){
-  const pf=pos.filter(p=>p.sym===cur.s);
-  if(!pf.length)return;
-  const ctx=chart.ctx,ya=chart.scales.y,xL=chart.chartArea.left,xR=chart.chartArea.right;
-  const slv=parseInt(document.getElementById('rsl').value)/100;
-  const tpv=parseInt(document.getElementById('rtp').value)/100;
-  pf.forEach(p=>{
-    const tpP=p.side==='LONG'?p.entry*(1+tpv):p.entry*(1-tpv);
-    const slP=p.side==='LONG'?p.entry*(1-slv):p.entry*(1+slv);
-    ctx.save();ctx.lineWidth=1.2;
-    const dl=(price,color,label)=>{
-      const y=ya.getPixelForValue(price);
-      if(y<chart.chartArea.top-2||y>chart.chartArea.bottom+2)return;
-      ctx.setLineDash([4,3]);ctx.strokeStyle=color;
-      ctx.beginPath();ctx.moveTo(xL,y);ctx.lineTo(xR,y);ctx.stroke();
-      ctx.setLineDash([]);ctx.fillStyle=color;ctx.font='bold 8px IBM Plex Mono';
-      ctx.fillText(label+' '+fp(price,cur.sym),xR-98,y-3);
-    };
-    dl(tpP,'rgba(0,232,122,.8)','TP');
-    dl(slP,'rgba(255,51,85,.8)','SL');
-    ctx.restore();
-  });
-}};
-
-function initMC(){
-  const ctx=document.getElementById('cc').getContext('2d');
-  MC=new Chart(ctx,{
-    type:'line',
-    data:{
-      labels:Array.from({length:100},(_,i)=>i),
-      datasets:[
-        {data:[...ph[cur.s]],borderColor:'#00e87a',borderWidth:1.5,pointRadius:0,fill:false,tension:0.3,order:1},
-        {data:Array(100).fill(null),type:'scatter',pointRadius:7,pointHoverRadius:9,backgroundColor:[],borderColor:[],borderWidth:2,order:0}
-      ]
-    },
-    options:{
-      responsive:true,maintainAspectRatio:false,
-      plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>{
-        if(c.datasetIndex===1)return c.raw?`${c.raw.lbl}: ${fp(c.raw.y,cur.sym)}`:'';
-        return fp(c.raw,cur.sym);
-      }}}},
-      scales:{x:{display:false},y:{display:true,position:'right',ticks:{font:{size:9,family:'IBM Plex Mono'},color:'#55556a',maxTicksLimit:5,callback:v=>fp(v,cur.sym)},grid:{color:'rgba(255,255,255,.03)',drawBorder:false}}},
-      animation:false
-    },
-    plugins:[tpslPlugin]
-  });
-  // Load real klines
-  fetchKlines(cur.s,100).then(closes=>{
-    if(closes&&closes.length>10){ph[cur.s]=closes;uMC();}
-  });
-}
-
-function uMC(){
-  if(!MC)return;
-  const h=ph[cur.s];if(!h||h.length<2)return;
-  MC.data.datasets[0].data=[...h];
-  // Entry markers
-  const markers=mk[cur.s]||[];
-  const sd=Array(100).fill(null),bg=Array(100).fill('transparent'),bd=Array(100).fill('transparent');
-  markers.forEach(m=>{
-    const idx=Math.min(Math.max(m.hi,0),99);
-    sd[idx]={x:idx,y:m.price,lbl:m.side+' ENTRY'};
-    bg[idx]=m.side==='LONG'?'rgba(77,136,255,.85)':'rgba(255,51,85,.85)';
-    bd[idx]=m.side==='LONG'?'#4d88ff':'#ff3355';
-  });
-  MC.data.datasets[1].data=sd;
-  MC.data.datasets[1].backgroundColor=bg;
-  MC.data.datasets[1].borderColor=bd;
-  const valid=h.filter(v=>v&&!isNaN(v));
-  if(!valid.length)return;
-  const mn=Math.min(...valid),mx=Math.max(...valid);
-  const pad=(mx-mn)*.15||mn*.01||0.001;
-  MC.options.scales.y.min=mn-pad;MC.options.scales.y.max=mx+pad;
-  MC.update('none');
-}
-
-// ════════════════════════════════════════════════
-// SIGNALS — real indicators
-// ════════════════════════════════════════════════
+// ══════════════════════════════════════════
+// SIGNALS
+// ══════════════════════════════════════════
 function renderSigs(){
   const list=SIGS[si];
   const h=ph[cur.s];
   if(!h||h.length<15){
-    document.getElementById('slist').innerHTML='<div style="padding:12px 0;color:var(--t3);font-size:11px;">Chargement...</div>';
-    return;
+    document.getElementById('slist').innerHTML='<div style="padding:12px 0;color:var(--t3);font-size:11px;">Chargement...</div>';return;
   }
-  const rsi=calcRSI(h,14);
-  const ema9=calcEMA(h,9),ema21=calcEMA(h,21);
-  const sma20=calcSMA(h,20);
+  const rsi=calcRSI(h,14),ema9=calcEMA(h,9),ema21=calcEMA(h,21),sma20=calcSMA(h,20);
   const p=lp[cur.s];
-  const std20=Math.sqrt(h.slice(-20).reduce((a,b)=>a+(b-sma20)**2,0)/20);
-  const bbUp=sma20+2*std20,bbLo=sma20-2*std20;
-  const bbPct=std20>0?Math.min(100,Math.max(0,(p-bbLo)/(bbUp-bbLo)*100)):50;
+  const std=Math.sqrt(h.slice(-20).reduce((a,b)=>a+(b-sma20)**2,0)/20);
+  const bbU=sma20+2*std,bbL=sma20-2*std;
+  const bbP=std>0?Math.min(100,Math.max(0,(p-bbL)/(bbU-bbL)*100)):50;
   const mom=h.length>10?((p-h[h.length-11])/h[h.length-11]*100):0;
-  const allVals=[
-    [rsi,ema9>ema21?65:35,Math.min(95,Math.max(5,50+mom*3)),100-bbPct,rsi,mom>0?62:38],
-    [ema9>ema21?72:28,Math.min(95,Math.max(5,rsi)),mom>0?65:35,Math.min(95,Math.max(5,50+mom*2)),p>sma20?62:38,rsi],
-    [bbPct>80||bbPct<20?72:38,p>bbUp?72:p<bbLo?28:50,Math.abs(mom)>1?65:40,ema9>ema21?65:35,mom>0?62:38,50+(rsi-50)*.5],
-    [100-Math.abs(rsi-50)*2,std20/sma20*800,100-bbPct,50,p<bbLo?70:p>bbUp?30:50,mom>0?60:40]
+  const allV=[
+    [rsi,ema9>ema21?65:35,Math.min(95,Math.max(5,50+mom*3)),100-bbP,rsi,mom>0?62:38],
+    [ema9>ema21?72:28,Math.min(95,rsi),mom>0?65:35,Math.min(95,50+mom*2),p>sma20?62:38,rsi],
+    [bbP>80||bbP<20?72:38,p>bbU?72:p<bbL?28:50,Math.abs(mom)>1?65:40,ema9>ema21?65:35,mom>0?62:38,50+(rsi-50)*.5],
+    [100-Math.abs(rsi-50)*2,std/sma20*800,100-bbP,50,p<bbL?70:p>bbU?30:50,mom>0?60:40]
   ];
-  const vals=allVals[si]||allVals[0];
+  const vals=allV[si]||allV[0];
   const bull=vals.filter(v=>v>55).length;
-  const ov=bull>=4?'ACHAT':bull<=2?'VENTE':'NEUTRE';
   const oel=document.getElementById('sgo');
-  oel.textContent=ov;oel.style.color=bull>=4?'var(--g)':bull<=2?'var(--r)':'var(--a)';
+  oel.textContent=bull>=4?'ACHAT':bull<=2?'VENTE':'NEUTRE';
+  oel.style.color=bull>=4?'var(--g)':bull<=2?'var(--r)':'var(--a)';
   document.getElementById('slist').innerHTML=list.map((nm,i)=>{
     const v=Math.min(95,Math.max(5,vals[i]||50));
     const b=v>55,br=v<45;
     const col=b?'#00e87a':br?'#ff3355':'#ffaa00';
-    const badge=b?'bull':br?'bear':'neut';
-    const lbl=b?'ACHAT':br?'VENTE':'NEUTRE';
-    return`<div class="srow"><span class="sname">${nm}</span><div class="sbw"><div class="sbar" style="width:${Math.round(v)}%;background:${col};"></div></div><span class="sbadge ${badge}">${lbl}</span></div>`;
+    return`<div class="srow"><span class="sname">${nm}</span><div class="sbw"><div class="sbar" style="width:${Math.round(v)}%;background:${col};"></div></div><span class="sbadge ${b?'bull':br?'bear':'neut'}">${b?'ACHAT':br?'VENTE':'NEUTRE'}</span></div>`;
   }).join('');
 }
 function setSt(idx){
   si=idx;[0,1,2,3].forEach(i=>document.getElementById('s'+i).className='stab'+(i===idx?' on':''));
-  renderSigs();if(!autoMode)addLog('STRAT','Strat\u00e9gie \u2192 '+SN[idx],'tst');
+  renderSigs();if(!autoMode)addLog('STRAT',SN[idx],'tst');
 }
 
-// ════════════════════════════════════════════════
+// ══════════════════════════════════════════
 // RISK
-// ════════════════════════════════════════════════
+// ══════════════════════════════════════════
 function uR(){
   st('rvl',document.getElementById('rl').value+'x');
   st('rvs',document.getElementById('rs').value+'%');
@@ -988,113 +957,155 @@ function uR(){
 }
 function setAg(lv){
   agr=lv;
-  const labels=['','MIN','FAIBLE','MOYEN','\u00c9LEV\u00c9','EXTR\u00caME'];
-  const colors=['','var(--g)','#88dd44','var(--a)','#ff7700','var(--r)'];
-  const el=document.getElementById('rvag');el.textContent=labels[lv];el.style.color=colors[lv];
+  const lbl=['','MIN','FAIBLE','MOYEN','\u00c9LEV\u00c9','EXTR\u00caME'];
+  const col=['','var(--g)','#88dd44','var(--a)','#ff7700','var(--r)'];
+  const el=document.getElementById('rvag');el.textContent=lbl[lv];el.style.color=col[lv];
   document.querySelectorAll('.ad').forEach((d,i)=>{d.className='ad'+(i<lv?` l${i+1}`:'');});
 }
 
-// ════════════════════════════════════════════════
-// AUTO MODE — uses real RSI + EMA
-// ════════════════════════════════════════════════
+// ══════════════════════════════════════════
+// AUTO MODE
+// ══════════════════════════════════════════
 function toggleAuto(){
   autoMode=!autoMode;
   const btn=document.getElementById('abtn'),ab=document.getElementById('ab'),tag=document.getElementById('artag');
   if(autoMode){btn.classList.add('on');ab.classList.add('on');tag.style.display='inline-block';
-    addLog('AUTO','Mode AUTO activ\u00e9 \u00b7 RSI+EMA live','tau');autoAdapt();}
+    addLog('AUTO','Mode AUTO \u2192 RSI+EMA live','tau');autoAdapt();}
   else{btn.classList.remove('on');ab.classList.remove('on');tag.style.display='none';
-    addLog('AUTO','Mode AUTO d\u00e9sactiv\u00e9','tst');}
+    addLog('AUTO','AUTO off','tst');}
 }
 
 function autoAdapt(){
   if(!autoMode||!active)return;
   const wr=tt>0?tw/tt:0.5;
-  const h=ph[cur.s];
-  if(!h||h.length<20)return;
-  const rsi=calcRSI(h,14);
-  const ema9=calcEMA(h,9),ema21=calcEMA(h,21);
-  const sma20=calcSMA(h,20);
-  const p=lp[cur.s];
-  const volPct=calcVol(h,20);
-  const trend=(ema9-ema21)/ema21;
-  const str=Math.abs(trend);
-
+  const h=ph[cur.s];if(!h||h.length<20)return;
+  const rsi=calcRSI(h,14),ema9=calcEMA(h,9),ema21=calcEMA(h,21);
+  const sma20=calcSMA(h,20),vol=calcVol(h,20);
+  const trend=(ema9-ema21)/ema21,str=Math.abs(trend);
   let ns,nl,nsl,ntp,nag,nz,desc;
-  if(volPct<0.003){ns=3;nl=4;nsl=1;ntp=3;nag=2;nz=12;desc='Consolidation \u2192 Grid 4\u00d7';}
-  else if(str<0.002&&rsi>40&&rsi<60){ns=0;nl=6;nsl=2;ntp=5;nag=2;nz=15;desc='Range \u2192 Scalp 6\u00d7';}
-  else if(trend>0.003&&rsi<70&&ema9>ema21){ns=2;nl=14;nsl=4;ntp=13;nag=5;nz=28;desc='Breakout haussier \u2192 14\u00d7 TP13%';}
-  else if(trend<-0.003&&rsi>30&&ema9<ema21){ns=2;nl=12;nsl=4;ntp=11;nag=4;nz=24;desc='Breakout baissier \u2192 12\u00d7 TP11%';}
-  else if(rsi>60&&ema9>ema21){ns=1;nl=10;nsl=3;ntp=9;nag=4;nz=22;desc='Momentum haussier RSI='+rsi.toFixed(0)+' \u2192 10\u00d7';}
-  else if(rsi<40&&ema9<ema21){ns=1;nl=10;nsl=3;ntp=9;nag=4;nz=22;desc='Momentum baissier RSI='+rsi.toFixed(0)+' \u2192 10\u00d7';}
-  else if(volPct>0.015){ns=0;nl=18;nsl=6;ntp=12;nag=5;nz=30;desc='Volatilit\u00e9 haute \u2192 Scalp 18\u00d7';}
-  else{ns=0;nl=10;nsl=3;ntp=8;nag=4;nz=20;desc='Standard \u2192 Scalp 10\u00d7';}
-
+  if(vol<0.003){ns=3;nl=4;nsl=1;ntp=3;nag=2;nz=12;desc='Grid 4\u00d7 \u00b7 consolidation';}
+  else if(str<0.002&&rsi>40&&rsi<60){ns=0;nl=6;nsl=2;ntp=5;nag=2;nz=15;desc='Scalp 6\u00d7 \u00b7 range';}
+  else if(trend>0.003&&rsi<70&&ema9>ema21){ns=2;nl=14;nsl=4;ntp=13;nag=5;nz=28;desc='Breakout LONG 14\u00d7 TP13%';}
+  else if(trend<-0.003&&rsi>30&&ema9<ema21){ns=2;nl=12;nsl=4;ntp=11;nag=4;nz=24;desc='Breakout SHORT 12\u00d7 TP11%';}
+  else if(rsi>60&&ema9>ema21){ns=1;nl=10;nsl=3;ntp=9;nag=4;nz=22;desc='Momentum LONG RSI='+rsi.toFixed(0);}
+  else if(rsi<40&&ema9<ema21){ns=1;nl=10;nsl=3;ntp=9;nag=4;nz=22;desc='Momentum SHORT RSI='+rsi.toFixed(0);}
+  else if(vol>0.015){ns=0;nl=18;nsl=6;ntp=12;nag=5;nz=30;desc='Scalp 18\u00d7 \u00b7 vol haute';}
+  else{ns=0;nl=10;nsl=3;ntp=8;nag=4;nz=20;desc='Scalp 10\u00d7 \u00b7 standard';}
   if(tt>8){
-    if(wr<0.35){nl=Math.max(2,nl-4);nsl=Math.max(1,nsl-1);nz=Math.max(8,nz-8);desc+=' \u2193Risk';}
-    else if(wr>0.70){nl=Math.min(25,nl+2);ntp=Math.min(28,ntp+2);desc+=' \u2191Risk';}
+    if(wr<0.35){nl=Math.max(2,nl-4);nsl=Math.max(1,nsl-1);nz=Math.max(8,nz-8);desc+='\u2193Risk';}
+    else if(wr>0.70){nl=Math.min(25,nl+2);ntp=Math.min(28,ntp+2);desc+='\u2191Risk';}
   }
-
-  // Auto-select best opportunity token
-  if(autoMode){
-    let best=cur,bestScore=-1;
-    TK.slice(0,20).forEach(tk=>{
-      const th=ph[tk.s];if(!th||th.length<20)return;
-      const tr=calcRSI(th,14);
-      const te9=calcEMA(th,9),te21=calcEMA(th,21);
-      const ttrend=Math.abs((te9-te21)/te21);
-      const score=ttrend*100+(Math.abs(tr-50)/50)*20;
-      if(score>bestScore){bestScore=score;best=tk;}
-    });
-    if(best.s!==cur.s){
-      cur=best;buildTkBar();uPD();
-      fetchKlines(cur.s,100).then(closes=>{if(closes&&closes.length>10){ph[cur.s]=closes;if(MC)uMC();}});
-      addLog('AUTO','Token optimal: '+cur.sym+'/USDT (RSI='+calcRSI(ph[cur.s],14).toFixed(0)+')','tau');
-    }
+  // Best token scan
+  let best=cur,bScore=-1;
+  TK.slice(0,20).forEach(tk=>{
+    const th=ph[tk.s];if(!th||th.length<20)return;
+    const tr=calcRSI(th,14),te9=calcEMA(th,9),te21=calcEMA(th,21);
+    const score=Math.abs((te9-te21)/te21)*100+(Math.abs(tr-50)/50)*20;
+    if(score>bScore){bScore=score;best=tk;}
+  });
+  if(best.s!==cur.s){
+    cur=best;buildTkBar();uPD();
+    fetchKlines(cur.s,100).then(c=>{if(c&&c.length>10){ph[cur.s]=c;if(MC)uMC();}});
+    addLog('AUTO','Token \u2192 '+cur.sym+' RSI='+calcRSI(ph[cur.s],14).toFixed(0),'tau');
   }
-
   setSt(ns);
-  document.getElementById('rl').value=nl;document.getElementById('rsl').value=nsl;
-  document.getElementById('rtp').value=ntp;document.getElementById('rs').value=nz;
+  ['rl','rsl','rtp','rs'].forEach((id,idx)=>document.getElementById(id).value=[nl,nsl,ntp,nz][idx]);
   setAg(nag);uR();
   st('ab-sub','RSI='+rsi.toFixed(0)+' \u00b7 '+desc);
   addLog('AUTO','RSI='+rsi.toFixed(0)+' \u00b7 '+desc,'tau');
 }
 
-// ════════════════════════════════════════════════
+// ══════════════════════════════════════════
+// MAIN CHART
+// ══════════════════════════════════════════
+const tpslPlugin={id:'tpsl',afterDraw(chart){
+  const pf=pos.filter(p=>p.sym===cur.s);if(!pf.length)return;
+  const ctx=chart.ctx,ya=chart.scales.y,xL=chart.chartArea.left,xR=chart.chartArea.right;
+  const slv=parseInt(document.getElementById('rsl').value)/100;
+  const tpv=parseInt(document.getElementById('rtp').value)/100;
+  pf.forEach(p=>{
+    const tpP=p.side==='LONG'?p.entry*(1+tpv):p.entry*(1-tpv);
+    const slP=p.side==='LONG'?p.entry*(1-slv):p.entry*(1+slv);
+    ctx.save();ctx.lineWidth=1.2;
+    [[tpP,'rgba(0,232,122,.8)','TP'],[slP,'rgba(255,51,85,.8)','SL']].forEach(([price,color,lbl])=>{
+      const y=ya.getPixelForValue(price);
+      if(y<chart.chartArea.top-2||y>chart.chartArea.bottom+2)return;
+      ctx.setLineDash([4,3]);ctx.strokeStyle=color;
+      ctx.beginPath();ctx.moveTo(xL,y);ctx.lineTo(xR,y);ctx.stroke();
+      ctx.setLineDash([]);ctx.fillStyle=color;ctx.font='bold 8px IBM Plex Mono';
+      ctx.fillText(lbl+' '+fp(price,cur.sym),xR-90,y-3);
+    });
+    ctx.restore();
+  });
+}};
+
+function initMC(){
+  const ctx=document.getElementById('cc').getContext('2d');
+  MC=new Chart(ctx,{
+    type:'line',
+    data:{labels:Array.from({length:100},(_,i)=>i),
+      datasets:[
+        {data:[...ph[cur.s]],borderColor:'#00e87a',borderWidth:1.5,pointRadius:0,fill:false,tension:0.3,order:1},
+        {data:Array(100).fill(null),type:'scatter',pointRadius:7,pointHoverRadius:9,backgroundColor:[],borderColor:[],borderWidth:2,order:0}
+      ]},
+    options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>{
+        if(c.datasetIndex===1)return c.raw?`${c.raw.lbl}: ${fp(c.raw.y,cur.sym)}`:'';
+        return fp(c.raw,cur.sym);
+      }}}},
+      scales:{x:{display:false},y:{display:true,position:'right',ticks:{font:{size:9,family:'IBM Plex Mono'},color:'#55556a',maxTicksLimit:5,callback:v=>fp(v,cur.sym)},grid:{color:'rgba(255,255,255,.03)',drawBorder:false}}},
+      animation:false},
+    plugins:[tpslPlugin]
+  });
+  fetchKlines(cur.s,100).then(c=>{if(c&&c.length>10){ph[cur.s]=c;uMC();}});
+}
+
+function uMC(){
+  if(!MC)return;
+  const h=ph[cur.s];if(!h||h.length<2)return;
+  MC.data.datasets[0].data=[...h];
+  const markers=mk[cur.s]||[];
+  const sd=Array(100).fill(null),bg=Array(100).fill('transparent'),bd=Array(100).fill('transparent');
+  markers.forEach(m=>{
+    const idx=Math.min(Math.max(m.hi,0),99);
+    sd[idx]={x:idx,y:m.price,lbl:m.side+' ENTRY'};
+    bg[idx]=m.side==='LONG'?'rgba(77,136,255,.85)':'rgba(255,51,85,.85)';
+    bd[idx]=m.side==='LONG'?'#4d88ff':'#ff3355';
+  });
+  MC.data.datasets[1].data=sd;MC.data.datasets[1].backgroundColor=bg;MC.data.datasets[1].borderColor=bd;
+  const vld=h.filter(v=>v&&!isNaN(v));if(!vld.length)return;
+  const mn=Math.min(...vld),mx=Math.max(...vld),pad=(mx-mn)*.15||mn*.01||.001;
+  MC.options.scales.y.min=mn-pad;MC.options.scales.y.max=mx+pad;
+  MC.update('none');
+}
+
+// ══════════════════════════════════════════
 // BOT LOGIC
-// ════════════════════════════════════════════════
+// ══════════════════════════════════════════
 function maybeOpen(){
   if(!active||pos.length>=6)return;
   const prob=[0,.04,.06,.09,.13,.18][agr]||.09;
   if(Math.random()>prob)return;
-
   const lev=parseInt(document.getElementById('rl').value);
-  const szPct=parseInt(document.getElementById('rs').value)/100;
-  const sz=Math.max(10,(cap+tg)*szPct*(0.5+Math.random()*.8));
-
+  const sz=Math.max(10,(cap+tg)*(parseInt(document.getElementById('rs').value)/100)*(0.5+Math.random()*.8));
   let t,side;
   if(autoMode){
     const cands=TK.slice(0,25).filter(tk=>{
       const th=ph[tk.s];if(!th||th.length<15)return false;
-      const r=calcRSI(th,14);
-      const e9=calcEMA(th,9),e21=calcEMA(th,21);
+      const r=calcRSI(th,14),e9=calcEMA(th,9),e21=calcEMA(th,21);
       return(r>58&&e9>e21)||(r<42&&e9<e21);
     }).map(tk=>{
-      const th=ph[tk.s];
-      const r=calcRSI(th,14);
-      const e9=calcEMA(th,9),e21=calcEMA(th,21);
+      const th=ph[tk.s],r=calcRSI(th,14),e9=calcEMA(th,9),e21=calcEMA(th,21);
       return{tk,r,trend:Math.abs((e9-e21)/e21),side:r>58?'LONG':'SHORT'};
     }).sort((a,b)=>b.trend-a.trend);
-    if(cands.length){const b=cands[0];t=b.tk;side=b.side;}
+    if(cands.length){t=cands[0].tk;side=cands[0].side;}
     else{t=cur;side=Math.random()>.5?'LONG':'SHORT';}
   }else{
-    const h=ph[cur.s];
-    const rsi=h&&h.length>14?calcRSI(h,14):50;
+    const h=ph[cur.s];const rsi=h&&h.length>14?calcRSI(h,14):50;
     const pool=Math.random()>.55?[cur]:TK.slice(0,15);
     t=pool[Math.floor(Math.random()*pool.length)];
     side=rsi>55?'LONG':rsi<45?'SHORT':(Math.random()>.5?'LONG':'SHORT');
   }
-
   const ep=lp[t.s];
   if(!ep||isNaN(ep)||ep<=0)return;
   const hi=Math.min(ph[t.s].length-1,99);
@@ -1102,271 +1113,183 @@ function maybeOpen(){
   if(!mk[t.s])mk[t.s]=[];
   mk[t.s].push({side,price:ep,hi});
   if(mk[t.s].length>8)mk[t.s].shift();
-  const rsiV=ph[t.s]&&ph[t.s].length>14?calcRSI(ph[t.s],14).toFixed(0):'?';
-  addLog('ORDRE',`${side} ${t.sym}/USDT \u00b7 $${sz.toFixed(0)} \u00b7 ${lev}\u00d7 \u00b7 @${fp(ep,t.sym)} RSI=${rsiV}`,'to');
+  const rv=ph[t.s]&&ph[t.s].length>14?calcRSI(ph[t.s],14).toFixed(0):'?';
+  addLog('ORDRE',`${side} ${t.sym} $${sz.toFixed(0)} ${lev}\u00d7 @${fp(ep,t.sym)} RSI=${rv}`,'to');
 }
 
 function checkAC(){
   if(!active)return;
   const sl=parseInt(document.getElementById('rsl').value);
   const tp=parseInt(document.getElementById('rtp').value);
-  // Iterate backwards to safely splice
   for(let i=pos.length-1;i>=0;i--){
-    const p=pos[i];
-    const cp=lp[p.sym];
+    const p=pos[i],cp=lp[p.sym];
     if(!cp||isNaN(cp)||cp<=0)continue;
-    // P&L % = ((currentPrice - entryPrice) / entryPrice) * leverage * 100
-    // For LONG: positive when price goes up
-    // For SHORT: positive when price goes down
-    const pnlPct=p.side==='LONG'
-      ? (cp-p.entry)/p.entry*p.lev*100
-      : (p.entry-cp)/p.entry*p.lev*100;
-    if(pnlPct>=tp)closeP(i,'TP');
-    else if(pnlPct<=-sl)closeP(i,'SL');
+    const pct=p.side==='LONG'?(cp-p.entry)/p.entry*p.lev*100:(p.entry-cp)/p.entry*p.lev*100;
+    if(pct>=tp)closeP(i,'TP');else if(pct<=-sl)closeP(i,'SL');
   }
 }
 
 function closeP(i,reason='Manuel'){
   if(i<0||i>=pos.length)return;
-  const p=pos[i];
-  const cp=lp[p.sym];
+  const p=pos[i],cp=lp[p.sym];
   if(!cp||isNaN(cp)||cp<=0){pos.splice(i,1);return;}
-  // P&L in $ = size * (priceDelta/entryPrice) * leverage
-  // LONG: profit when price rises
-  // SHORT: profit when price falls
-  const pnl=p.side==='LONG'
-    ? (cp-p.entry)/p.entry*p.size*p.lev
-    : (p.entry-cp)/p.entry*p.size*p.lev;
-  tg+=pnl;tt++;if(pnl>=0)tw++;
-  pos.splice(i,1);
+  const pnl=p.side==='LONG'?(cp-p.entry)/p.entry*p.size*p.lev:(p.entry-cp)/p.entry*p.size*p.lev;
+  tg+=pnl;tt++;if(pnl>=0)tw++;pos.splice(i,1);
   const sg=pnl>=0?'+':'';
-  const tag=reason==='TP'?'ttp':reason==='SL'?'tsl':(pnl>=0?'tg':'tl');
-  addLog(reason,`${p.sym} \u00b7 ${sg}$${Math.abs(pnl).toFixed(2)} \u00b7 ${p.side} ${p.lev}\u00d7`,tag);
+  addLog(reason,`${p.sym} ${sg}$${Math.abs(pnl).toFixed(2)} ${p.side} ${p.lev}\u00d7`,reason==='TP'?'ttp':reason==='SL'?'tsl':(pnl>=0?'tg':'tl'));
 }
 
-// ════════════════════════════════════════════════
+// ══════════════════════════════════════════
 // METRICS
-// ════════════════════════════════════════════════
+// ══════════════════════════════════════════
 function uMetrics(){
-  // Compute unrealized P&L from all open positions
   let ur=0;
   pos.forEach(p=>{
-    const cp=lp[p.sym];
-    if(!cp||isNaN(cp)||cp<=0)return;
-    const pnl=p.side==='LONG'
-      ? (cp-p.entry)/p.entry*p.size*p.lev
-      : (p.entry-cp)/p.entry*p.size*p.lev;
-    ur+=pnl;
+    const cp=lp[p.sym];if(!cp||isNaN(cp)||cp<=0)return;
+    ur+=p.side==='LONG'?(cp-p.entry)/p.entry*p.size*p.lev:(p.entry-cp)/p.entry*p.size*p.lev;
   });
   const alloc=pos.reduce((a,p)=>a+p.size,0);
-  const pp=(tg/cap*100);
-  const ppStr=(pp>=0?'+':'')+pp.toFixed(2)+'%';
-  const sg=tg>=0?'+':'';
+  const pp=tg/cap*100,sg=tg>=0?'+':'';
   st('m-pnl',sg+'$'+Math.abs(tg).toFixed(2));
-  st('m-pp',ppStr);
+  st('m-pp',(pp>=0?'+':'')+pp.toFixed(2)+'%');
   sc('m-pnl','mv '+(tg>=0?'pos':'neg'));
   sc('m-pp','ms '+(tg>=0?'pos':'neg'));
   st('m-cap','$'+fn(cap+tg));
   st('m-alloc','$'+alloc.toFixed(0)+' allou\u00e9');
   st('m-tr',tt);
-  st('m-wr','Win '+(tt>0?Math.round(tw/tt*100)+('%'):'-'));
+  st('m-wr','Win '+(tt>0?Math.round(tw/tt*100)+'%':'-'));
   const us=ur>=0?'+':'';
   st('m-ur',us+'$'+Math.abs(ur).toFixed(2));
   sc('m-ur','mv '+(ur>=0?'pos':'neg'));
   st('m-pc',pos.length+' position'+(pos.length!==1?'s':''));
 }
 
-// ════════════════════════════════════════════════
-// POSITIONS RENDER
-// ════════════════════════════════════════════════
+// ══════════════════════════════════════════
+// POSITIONS
+// ══════════════════════════════════════════
 function renderPos(){
   const list=document.getElementById('plist');
   st('pbadge',pos.length);
-  if(!pos.length){list.innerHTML='<div class="epos"><span>&#9670;</span>Aucune position \u00b7 Bot en attente...</div>';return;}
+  if(!pos.length){list.innerHTML='<div class="epos"><span>&#9670;</span>Aucune position</div>';return;}
   const sl=parseInt(document.getElementById('rsl').value);
   const tp=parseInt(document.getElementById('rtp').value);
   list.innerHTML=pos.map((p,i)=>{
-    const cp=lp[p.sym];
-    const validPrice=cp&&!isNaN(cp)&&cp>0;
-    const cpDisp=validPrice?cp:p.entry;
-    // P&L calculation (same formula as closeP and checkAC)
-    const pnl=validPrice
-      ? (p.side==='LONG'
-          ? (cpDisp-p.entry)/p.entry*p.size*p.lev
-          : (p.entry-cpDisp)/p.entry*p.size*p.lev)
-      : 0;
-    const pp=p.entry>0?pnl/p.size*100:0;
-    const cl=pnl>=0?'pos':'neg',sg=pnl>=0?'+':'';
-    // Liquidation: when loss = 90% of margin (0.9/leverage)
-    const liq=p.side==='LONG'
-      ? p.entry*(1-0.9/p.lev)
-      : p.entry*(1+0.9/p.lev);
+    const cp=lp[p.sym],ok=cp&&!isNaN(cp)&&cp>0,cpD=ok?cp:p.entry;
+    const pnl=ok?(p.side==='LONG'?(cpD-p.entry)/p.entry*p.size*p.lev:(p.entry-cpD)/p.entry*p.size*p.lev):0;
+    const pp=p.entry>0?pnl/p.size*100:0,cl=pnl>=0?'pos':'neg',sg=pnl>=0?'+':'';
+    const liq=p.side==='LONG'?p.entry*(1-.9/p.lev):p.entry*(1+.9/p.lev);
     const tpP=p.side==='LONG'?p.entry*(1+tp/100):p.entry*(1-tp/100);
     const slP=p.side==='LONG'?p.entry*(1-sl/100):p.entry*(1+sl/100);
-    const tk=TK.find(t=>t.s===p.sym);const sym=tk?tk.sym:p.sym.replace('USDT','');
+    const tk=TK.find(t=>t.s===p.sym),sym=tk?tk.sym:p.sym.replace('USDT','');
     return`<div class="pcard">
-      <div class="pct">
-        <span class="ppair">${sym}/USDT</span>
-        <span class="pside ${p.side==='LONG'?'plong':'pshort'}">${p.side}</span>
-        <span class="plev">${p.lev}\u00d7</span>
-        <div class="ppnl">
-          <div class="ppnlv ${cl}">${sg}$${Math.abs(pnl).toFixed(2)}</div>
-          <div class="ppnlp ${cl}">${sg}${pp.toFixed(2)}%</div>
-        </div>
-      </div>
+      <div class="pct"><span class="ppair">${sym}/USDT</span><span class="pside ${p.side==='LONG'?'plong':'pshort'}">${p.side}</span><span class="plev">${p.lev}\u00d7</span>
+        <div class="ppnl"><div class="ppnlv ${cl}">${sg}$${Math.abs(pnl).toFixed(2)}</div><div class="ppnlp ${cl}">${sg}${pp.toFixed(2)}%</div></div></div>
       <div class="pcb">
         <div class="pst"><div class="psl">Entr\u00e9e</div><div class="psv">${fp(p.entry,sym)}</div></div>
-        <div class="pst"><div class="psl">Prix live</div><div class="psv ${cl}">${validPrice?fp(cpDisp,sym):'...'}</div></div>
+        <div class="pst"><div class="psl">Live</div><div class="psv ${cl}">${ok?fp(cpD,sym):'...'}</div></div>
         <div class="pst"><div class="psl">Liq.</div><div class="psv" style="color:var(--r);font-size:10px;">${fp(liq,sym)}</div></div>
         <div class="pst"><div class="psl">Take-profit</div><div class="psv pos">${fp(tpP,sym)}</div></div>
         <div class="pst"><div class="psl">Stop-loss</div><div class="psv neg">${fp(slP,sym)}</div></div>
         <div class="pst"><div class="psl">Taille</div><div class="psv">$${p.size.toFixed(0)}</div></div>
       </div>
-      <div class="pact">
-        <button class="pgbtn" onclick="oPCM(${i})">&#128200; Graphique TP/SL</button>
-        <button class="pcbtn" onclick="closeP(${i})">&#10005; Fermer</button>
-      </div>
+      <div class="pact"><button class="pgbtn" onclick="oPCM(${i})">&#128200; Graphique TP/SL</button><button class="pcbtn" onclick="closeP(${i})">&#10005; Fermer</button></div>
     </div>`;
   }).join('');
 }
 
-// ════════════════════════════════════════════════
+// ══════════════════════════════════════════
 // POSITION CHART MODAL
-// ════════════════════════════════════════════════
+// ══════════════════════════════════════════
 function oPCM(i){
   if(i<0||i>=pos.length)return;
-  const p=pos[i];
-  const cp=lp[p.sym]||p.entry;
+  const p=pos[i],cp=lp[p.sym]||p.entry;
   const pnl=p.side==='LONG'?(cp-p.entry)/p.entry*p.size*p.lev:(p.entry-cp)/p.entry*p.size*p.lev;
   const pp=pnl/p.size*100,sg=pnl>=0?'+':'';
-  const sl=parseInt(document.getElementById('rsl').value);
-  const tp=parseInt(document.getElementById('rtp').value);
+  const sl=parseInt(document.getElementById('rsl').value),tp=parseInt(document.getElementById('rtp').value);
   const tpP=p.side==='LONG'?p.entry*(1+tp/100):p.entry*(1-tp/100);
   const slP=p.side==='LONG'?p.entry*(1-sl/100):p.entry*(1+sl/100);
   const liq=p.side==='LONG'?p.entry*(1-.9/p.lev):p.entry*(1+.9/p.lev);
-  const tk=TK.find(t=>t.s===p.sym);const sym=tk?tk.sym:p.sym.replace('USDT','');
+  const tk=TK.find(t=>t.s===p.sym),sym=tk?tk.sym:p.sym.replace('USDT','');
   const rsiV=ph[p.sym]&&ph[p.sym].length>14?calcRSI(ph[p.sym],14).toFixed(1):'?';
-  st('pmt',`${sym}/USDT \u00b7 ${p.side} ${p.lev}\u00d7 \u00b7 LIVE`);
+  const src=binanceOK?'Binance':krakenOK?'Kraken':'CoinGecko';
+  st('pmt',`${sym}/USDT \u00b7 ${p.side} ${p.lev}\u00d7 \u00b7 ${src}`);
   document.getElementById('pmi').innerHTML=`
     <div class="pmii"><div class="pmil">Entr\u00e9e</div><div class="pmiv">${fp(p.entry,sym)}</div></div>
-    <div class="pmii"><div class="pmil">Prix live</div><div class="pmiv ${pnl>=0?'pos':'neg'}">${fp(cp,sym)}</div></div>
+    <div class="pmii"><div class="pmil">Live</div><div class="pmiv ${pnl>=0?'pos':'neg'}">${fp(cp,sym)}</div></div>
     <div class="pmii"><div class="pmil">P&amp;L</div><div class="pmiv ${pnl>=0?'pos':'neg'}">${sg}$${Math.abs(pnl).toFixed(2)} (${sg}${pp.toFixed(2)}%)</div></div>
     <div class="pmii"><div class="pmil">Take-profit</div><div class="pmiv pos">${fp(tpP,sym)}</div></div>
     <div class="pmii"><div class="pmil">Stop-loss</div><div class="pmiv neg">${fp(slP,sym)}</div></div>
     <div class="pmii"><div class="pmil">RSI(14)</div><div class="pmiv">${rsiV}</div></div>
     <div class="pmii"><div class="pmil">Liquidation</div><div class="pmiv" style="color:var(--a)">${fp(liq,sym)}</div></div>`;
   document.getElementById('pcm').classList.add('on');
-  fetchKlines(p.sym,80).then(closes=>{
-    const hist=closes&&closes.length>10?closes:ph[p.sym].slice(-80);
-    buildPC(p,tpP,slP,liq,sym,hist);
-  });
+  fetchKlines(p.sym,80).then(c=>{buildPC(p,tpP,slP,liq,sym,c&&c.length>10?c:ph[p.sym].slice(-80));});
 }
 
 function buildPC(p,tpP,slP,liq,sym,hist){
   if(PC){PC.destroy();PC=null;}
   const ctx=document.getElementById('pcc').getContext('2d');
-  const labels=hist.map((_,i)=>i);
-  const ei=Math.floor(hist.length*.3);
-  const pColor=lp[p.sym]>=p.entry?'#00e87a':'#ff3355';
   PC=new Chart(ctx,{
     type:'line',
-    data:{
-      labels,
+    data:{labels:hist.map((_,i)=>i),
       datasets:[
-        {data:hist,borderColor:pColor,borderWidth:2,pointRadius:0,fill:false,tension:0.3,order:1},
-        {type:'scatter',data:[{x:ei,y:p.entry}],
+        {data:hist,borderColor:lp[p.sym]>=p.entry?'#00e87a':'#ff3355',borderWidth:2,pointRadius:0,fill:false,tension:0.3,order:1},
+        {type:'scatter',data:[{x:Math.floor(hist.length*.3),y:p.entry}],
           pointRadius:9,pointHoverRadius:11,
           backgroundColor:p.side==='LONG'?'rgba(77,136,255,.9)':'rgba(255,51,85,.9)',
           borderColor:p.side==='LONG'?'#4d88ff':'#ff3355',borderWidth:2,order:0}
-      ]
-    },
-    options:{
-      responsive:true,maintainAspectRatio:false,
+      ]},
+    options:{responsive:true,maintainAspectRatio:false,
       plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>fp(c.raw?.y??c.raw,sym)}}},
       scales:{x:{display:false},y:{display:true,position:'right',ticks:{font:{size:9,family:'IBM Plex Mono'},color:'#55556a',maxTicksLimit:6,callback:v=>fp(v,sym)},grid:{color:'rgba(255,255,255,.03)'}}},
-      animation:{duration:250}
-    },
+      animation:{duration:250}},
     plugins:[{id:'lines',afterDraw(chart){
       const ctx=chart.ctx,ya=chart.scales.y,xL=chart.chartArea.left,xR=chart.chartArea.right;
       ctx.save();ctx.lineWidth=1.5;
-      const dl=(price,color,label,dashed=true)=>{
+      [[p.entry,p.side==='LONG'?'rgba(77,136,255,.85)':'rgba(255,51,85,.85)','ENTR\u00c9E',false],
+       [tpP,'rgba(0,232,122,.85)','TP',true],[slP,'rgba(255,51,85,.85)','SL',true],
+       [liq,'rgba(255,170,0,.65)','LIQ',true]
+      ].forEach(([price,color,lbl,dashed])=>{
         if(!price||isNaN(price))return;
         const y=ya.getPixelForValue(price);
         if(y<chart.chartArea.top-2||y>chart.chartArea.bottom+2)return;
         ctx.setLineDash(dashed?[5,4]:[]);ctx.strokeStyle=color;
         ctx.beginPath();ctx.moveTo(xL,y);ctx.lineTo(xR,y);ctx.stroke();
         ctx.setLineDash([]);ctx.fillStyle=color;ctx.font='bold 9px IBM Plex Mono';
-        ctx.fillText(label+' '+fp(price,sym),xL+4,y-4);
-      };
-      dl(p.entry,p.side==='LONG'?'rgba(77,136,255,.85)':'rgba(255,51,85,.85)','ENTR\u00c9E',false);
-      dl(tpP,'rgba(0,232,122,.85)','TP');
-      dl(slP,'rgba(255,51,85,.85)','SL');
-      dl(liq,'rgba(255,170,0,.65)','LIQ');
+        ctx.fillText(lbl+' '+fp(price,sym),xL+4,y-4);
+      });
       ctx.restore();
     }}]
   });
 }
 function cPCM(){document.getElementById('pcm').classList.remove('on');if(PC){PC.destroy();PC=null;}}
 
-// ════════════════════════════════════════════════
-// BOT TICK
-// ════════════════════════════════════════════════
-function botTick(){
-  ticks++;
-  if(ticks%4===0){maybeOpen();checkAC();renderPos();uMetrics();}
-  if(ticks%18===0)renderSigs();
-}
-
-// ════════════════════════════════════════════════
-// BOT TOGGLE
-// ════════════════════════════════════════════════
+// ══════════════════════════════════════════
+// BOT TICK / TOGGLE / LOGS / MODAL / COLLAPSE
+// ══════════════════════════════════════════
+function botTick(){ticks++;if(ticks%4===0){maybeOpen();checkAC();renderPos();uMetrics();}if(ticks%18===0)renderSigs();}
 function toggleBot(){
   active=!active;
   const btn=document.getElementById('tbtn'),dot=document.getElementById('sdot'),sub=document.getElementById('bsub');
-  if(active){btn.className='btn btn-stop';btn.innerHTML='&#9209; STOP';dot.className='sdot live';sub.textContent='ACTIF';addLog('SYS','Bot red\u00e9marr\u00e9','ts');}
-  else{btn.className='btn btn-start';btn.innerHTML='&#9654; START';dot.className='sdot off';sub.textContent='ARRET\u00c9';addLog('SYS','Bot suspendu','tst');}
+  if(active){btn.className='btn btn-stop';btn.innerHTML='&#9209; STOP';dot.className='sdot live';sub.textContent='ACTIF';addLog('SYS','Bot ON','ts');}
+  else{btn.className='btn btn-start';btn.innerHTML='&#9654; START';dot.className='sdot off';sub.textContent='ARRET\u00c9';addLog('SYS','Bot OFF','tst');}
 }
-
-// ════════════════════════════════════════════════
-// LOGS
-// ════════════════════════════════════════════════
 function addLog(type,msg,tagCls){
-  logs.unshift({t:ts(),type,msg,tagCls});
-  if(logs.length>30)logs.pop();
-  document.getElementById('li').innerHTML=logs.map(l=>
-    `<div class="le"><span class="ltime">${l.t}</span><span class="ltag ${l.tagCls}">${l.type}</span><span class="lmsg">${l.msg}</span></div>`
-  ).join('');
+  logs.unshift({t:ts(),type,msg,tagCls});if(logs.length>30)logs.pop();
+  document.getElementById('li').innerHTML=logs.map(l=>`<div class="le"><span class="ltime">${l.t}</span><span class="ltag ${l.tagCls}">${l.type}</span><span class="lmsg">${l.msg}</span></div>`).join('');
 }
-
-// ════════════════════════════════════════════════
-// TOKEN MODAL
-// ════════════════════════════════════════════════
 function openTkm(){ftk=[...TK];rTk();document.getElementById('tkm').classList.add('on');setTimeout(()=>document.getElementById('tksearch').focus(),100);}
 function cTkm(){document.getElementById('tkm').classList.remove('on');document.getElementById('tksearch').value='';}
-function fTk(){
-  const q=document.getElementById('tksearch').value.toLowerCase();
-  ftk=q?TK.filter(t=>t.sym.toLowerCase().includes(q)||t.n.toLowerCase().includes(q)):([...TK]);
-  rTk();
-}
+function fTk(){const q=document.getElementById('tksearch').value.toLowerCase();ftk=q?TK.filter(t=>t.sym.toLowerCase().includes(q)||t.n.toLowerCase().includes(q)):[...TK];rTk();}
 function rTk(){
   document.getElementById('tklist').innerHTML=ftk.map(t=>{
-    const p=lp[t.s]||0;
-    const d=td[t.s]||{};const chg=d.chg24||0;
-    const cl=chg>=0?'pos':'neg';const sel=t.s===cur.s;
+    const p=lp[t.s]||0,d=td[t.s]||{},chg=d.chg24||0,cl=chg>=0?'pos':'neg',sel=t.s===cur.s;
     return`<div class="tki" onclick="selTk('${t.s}')" style="${sel?'background:var(--bg3)':''}">
       <div class="tkicon" style="background:${t.col}22;color:${t.col};">${t.sym.slice(0,3)}</div>
       <div class="tkin"><div class="tksym">${t.sym}${sel?' <span style="color:var(--g);font-size:9px;">\u25cf</span>':''}</div><div class="tkname">${t.n}</div></div>
-      <div class="tkpc">
-        <div class="tkprice ${cl}">${p?fp(p,t.sym):'-'}</div>
-        <div class="tkchg ${cl}" style="background:${chg>=0?'var(--g2)':'var(--r2)'}">${chg>=0?'+':''}${chg.toFixed(2)}%</div>
-      </div>
+      <div class="tkpc"><div class="tkprice ${cl}">${p?fp(p,t.sym):'-'}</div><div class="tkchg ${cl}" style="background:${chg>=0?'var(--g2)':'var(--r2)'}">${chg>=0?'+':''}${chg.toFixed(2)}%</div></div>
     </div>`;
   }).join('');
 }
-
-// ════════════════════════════════════════════════
-// COLLAPSE
-// ════════════════════════════════════════════════
 function tog(bodyId,chevId){
   const body=document.getElementById(bodyId),chev=document.getElementById(chevId);
   const isOpen=body.style.maxHeight!=='0px'&&body.style.maxHeight!=='';
@@ -1374,6 +1297,7 @@ function tog(bodyId,chevId){
   chev.classList.toggle('open',!isOpen);
   if(!isOpen)setTimeout(()=>{body.style.maxHeight='4000px';},260);
 }
+
 </script>
 </body>
 </html>
