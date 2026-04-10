@@ -503,7 +503,6 @@ let wsBinance=null,wsKraken=null;
 let binanceOK=false,krakenOK=false;
 let lastTickTime=0;
 let cgFallbackTimer=null;
-let lastUiPaint=0;
 
 // ══════════════════════════════════════════
 // FALLBACK PRICES (realistic April 2025)
@@ -592,9 +591,7 @@ function paintLiveUI(){
   renderPos();
 }
 function scheduleLiveUI(force=false){
-  const now=Date.now();
-  if(!force&&now-lastUiPaint<80)return;
-  lastUiPaint=now;
+  // Instant refresh requested: no throttle.
   paintLiveUI();
 }
 
