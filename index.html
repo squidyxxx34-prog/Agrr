@@ -498,7 +498,7 @@ let MC=null,PC=null;
 const lp={},lp0={},ph={},mk={},td={};
 
 // Data source state
-let srcMode='INIT'; // BINANCE_WS | KRAKEN_WS | COINGECKO | CRYPTOCOMPARE | SIM
+let srcMode='INIT'; // BINANCE_WS | KRAKEN_WS | BINANCE_REST | COINGECKO | CRYPTOCOMPARE | SIM
 let wsBinance=null,wsKraken=null;
 let binanceOK=false,krakenOK=false;
 let lastTickTime=0;
@@ -553,6 +553,10 @@ function setStatus(mode,label){
     dot.className='sdot live';sub.textContent='LIVE';
     err.classList.remove('show');
     src.textContent=label+' \u00b7 '+ts();
+  } else if(mode==='BINANCE_REST'){
+    dot.className='sdot live';sub.textContent='LIVE';
+    err.classList.remove('show');
+    src.textContent='Binance REST \u00b7 '+ts();
   } else if(mode==='COINGECKO'){
     dot.className='sdot live';sub.textContent='LIVE';
     err.classList.remove('show');
@@ -632,12 +636,16 @@ function initApp(){
   connectBinanceWS();
 
   // LAYER 3 — CoinGecko REST every 8s (always running, fills gaps)
+  fetchBinanceREST();
+  setInterval(fetchBinanceREST,3000);
+
+  // LAYER 4 — CoinGecko REST every 8s (secondary backup)
   fetchCoinGecko();
   setInterval(fetchCoinGecko,8000);
 
-  // LAYER 4 — CryptoCompare REST backup (free, no key required)
+  // LAYER 5 — CryptoCompare REST backup (last fallback)
   fetchCryptoCompare();
-  setInterval(fetchCryptoCompare,10000);
+  setInterval(fetchCryptoCompare,12000);
 
   // Watchdog: Binance dead 6s → Kraken
   setInterval(wsWatchdog,3000);
@@ -779,8 +787,46 @@ function connectKrakenWS(){
 }
 
 // ══════════════════════════════════════════
-// LAYER 3 — COINGECKO REST (safety net)
-// Runs always every 8s. Fills any gaps.
+// LAYER 3 — BINANCE REST (high-fidelity fallback)
+// Free and very close to WS prices.
+// ══════════════════════════════════════════
+const BINANCE_SYMBOLS=encodeURIComponent(JSON.stringify(TK.map(t=>t.s)));
+
+async function fetchBinanceREST(){
+  if(binanceOK||krakenOK)return;
+  try{
+    const url=`https://api.binance.com/api/v3/ticker/24hr?symbols=${BINANCE_SYMBOLS}`;
+    const r=await fetch(url,{signal:AbortSignal.timeout(7000)});
+    if(!r.ok)throw new Error('BNREST '+r.status);
+    const rows=await r.json();
+    if(!Array.isArray(rows))throw new Error('BNREST malformed');
+    let n=0;
+    rows.forEach(d=>{
+      const sym=d.symbol;
+      const t=TK.find(x=>x.s===sym);
+      if(!t)return;
+      const p=parseFloat(d.lastPrice);
+      if(!p||isNaN(p))return;
+      applyPrice(sym,p,{
+        chg24:parseFloat(d.priceChangePercent)||0,
+        vol:parseFloat(d.quoteVolume)||0,
+        high:parseFloat(d.highPrice)||p,
+        low:parseFloat(d.lowPrice)||p
+      });
+      n++;
+    });
+    if(n>0&&!binanceOK&&!krakenOK){
+      setStatus('BINANCE_REST','Binance REST');
+      scheduleLiveUI(true);buildTkBar();
+    }
+  }catch(e){
+    // Silent: CoinGecko + CryptoCompare + SIM are still available.
+  }
+}
+
+// ══════════════════════════════════════════
+// LAYER 4 — COINGECKO REST (secondary safety net)
+// Runs every 8s. Fills gaps if Binance REST is unavailable.
 // ══════════════════════════════════════════
 const CG_IDS=TK.map(t=>t.cgid).filter(Boolean).join(',');
 
