@@ -498,7 +498,7 @@ let MC=null,PC=null;
 const lp={},lp0={},ph={},mk={},td={};
 
 // Data source state
-let srcMode='INIT'; // BINANCE_WS | KRAKEN_WS | COINGECKO | SIM
+let srcMode='INIT'; // BINANCE_WS | KRAKEN_WS | BINANCE_REST | COINGECKO | CRYPTOCOMPARE | SIM
 let wsBinance=null,wsKraken=null;
 let binanceOK=false,krakenOK=false;
 let lastTickTime=0;
@@ -552,10 +552,18 @@ function setStatus(mode,label){
     dot.className='sdot live';sub.textContent='LIVE';
     err.classList.remove('show');
     src.textContent=label+' \u00b7 '+ts();
+  } else if(mode==='BINANCE_REST'){
+    dot.className='sdot live';sub.textContent='LIVE';
+    err.classList.remove('show');
+    src.textContent='Binance REST \u00b7 '+ts();
   } else if(mode==='COINGECKO'){
     dot.className='sdot live';sub.textContent='LIVE';
     err.classList.remove('show');
     src.textContent='CoinGecko REST \u00b7 '+ts();
+  } else if(mode==='CRYPTOCOMPARE'){
+    dot.className='sdot live';sub.textContent='LIVE';
+    err.classList.remove('show');
+    src.textContent='CryptoCompare REST \u00b7 '+ts();
   } else {
     dot.className='sdot loading';sub.textContent='SIM';
     err.classList.add('show');
@@ -572,6 +580,19 @@ function applyPrice(sym,price,extra){
   lastTickTime=Date.now();
   if(extra){td[sym]={chg24:extra.chg24||0,vol:extra.vol||0,high:extra.high||price,low:extra.low||price};}
   if(!lp0[sym]||lp0[sym]===FB[sym])lp0[sym]=price;
+  if(sym===cur.s||hasOpenPosFor(sym))scheduleLiveUI();
+}
+
+function hasOpenPosFor(sym){return pos.some(p=>p.sym===sym);}
+function paintLiveUI(){
+  uPD();
+  if(MC)uMC();
+  uMetrics();
+  renderPos();
+}
+function scheduleLiveUI(force=false){
+  // Instant refresh requested: no throttle.
+  paintLiveUI();
 }
 
 // ══════════════════════════════════════════
@@ -612,14 +633,27 @@ function initApp(){
   connectBinanceWS();
 
   // LAYER 3 — CoinGecko REST every 8s (always running, fills gaps)
+  fetchBinanceREST();
+  setInterval(fetchBinanceREST,3000);
+
+  // LAYER 4 — CoinGecko REST every 8s (secondary backup)
   fetchCoinGecko();
   setInterval(fetchCoinGecko,8000);
+
+  // LAYER 5 — CryptoCompare REST backup (last fallback)
+  fetchCryptoCompare();
+  setInterval(fetchCryptoCompare,12000);
 
   // Watchdog: Binance dead 6s → Kraken
   setInterval(wsWatchdog,3000);
 
   setInterval(botTick,900);
   setInterval(autoAdapt,12000);
+  setInterval(()=>{
+    paintLiveUI();
+    const modal=document.getElementById('tkm');
+    if(modal&&modal.classList.contains('on'))rTk();
+  },1000);
 }
 
 // ══════════════════════════════════════════
@@ -667,7 +701,7 @@ function connectBinanceWS(){
       }
       binanceOK=true;
       if(srcMode!=='BINANCE_WS')setStatus('BINANCE_WS','Binance WS');
-      if(sym===cur.s){uPD();if(MC)uMC();}
+      if(sym===cur.s||hasOpenPosFor(sym))scheduleLiveUI();
     }catch(err){}
   };
 
@@ -738,7 +772,7 @@ function connectKrakenWS(){
       });
       krakenOK=true;
       if(!binanceOK&&srcMode!=='KRAKEN_WS')setStatus('KRAKEN_WS','Kraken WS');
-      if(tkn.s===cur.s){uPD();if(MC)uMC();}
+      if(tkn.s===cur.s||hasOpenPosFor(tkn.s))scheduleLiveUI();
     }catch(err){}
   };
 
@@ -750,8 +784,46 @@ function connectKrakenWS(){
 }
 
 // ══════════════════════════════════════════
-// LAYER 3 — COINGECKO REST (safety net)
-// Runs always every 8s. Fills any gaps.
+// LAYER 3 — BINANCE REST (high-fidelity fallback)
+// Free and very close to WS prices.
+// ══════════════════════════════════════════
+const BINANCE_SYMBOLS=encodeURIComponent(JSON.stringify(TK.map(t=>t.s)));
+
+async function fetchBinanceREST(){
+  if(binanceOK||krakenOK)return;
+  try{
+    const url=`https://api.binance.com/api/v3/ticker/24hr?symbols=${BINANCE_SYMBOLS}`;
+    const r=await fetch(url,{signal:AbortSignal.timeout(7000)});
+    if(!r.ok)throw new Error('BNREST '+r.status);
+    const rows=await r.json();
+    if(!Array.isArray(rows))throw new Error('BNREST malformed');
+    let n=0;
+    rows.forEach(d=>{
+      const sym=d.symbol;
+      const t=TK.find(x=>x.s===sym);
+      if(!t)return;
+      const p=parseFloat(d.lastPrice);
+      if(!p||isNaN(p))return;
+      applyPrice(sym,p,{
+        chg24:parseFloat(d.priceChangePercent)||0,
+        vol:parseFloat(d.quoteVolume)||0,
+        high:parseFloat(d.highPrice)||p,
+        low:parseFloat(d.lowPrice)||p
+      });
+      n++;
+    });
+    if(n>0&&!binanceOK&&!krakenOK){
+      setStatus('BINANCE_REST','Binance REST');
+      scheduleLiveUI(true);buildTkBar();
+    }
+  }catch(e){
+    // Silent: CoinGecko + CryptoCompare + SIM are still available.
+  }
+}
+
+// ══════════════════════════════════════════
+// LAYER 4 — COINGECKO REST (secondary safety net)
+// Runs every 8s. Fills gaps if Binance REST is unavailable.
 // ══════════════════════════════════════════
 const CG_IDS=TK.map(t=>t.cgid).filter(Boolean).join(',');
 
@@ -782,15 +854,55 @@ async function fetchCoinGecko(){
     if(n>0&&!binanceOK&&!krakenOK){
       setStatus('COINGECKO','CoinGecko');
       if(n===1)addLog('LIVE','CoinGecko REST \u00b7 '+n+' prix','tlive');
-      uPD();if(MC)uMC();uMetrics();renderPos();buildTkBar();
+      scheduleLiveUI(true);buildTkBar();
     }
   }catch(e){
     // CoinGecko also failed — pure simulation
     if(!binanceOK&&!krakenOK){
       simulateTick();
       setStatus('SIM','');
-      uPD();if(MC)uMC();uMetrics();renderPos();
+      scheduleLiveUI(true);
     }
+  }
+}
+
+// ══════════════════════════════════════════
+// LAYER 4 — CRYPTOCOMPARE REST (extra fallback)
+// Free endpoint without API key for simple prices.
+// ══════════════════════════════════════════
+const CC_SYMBOLS=TK.map(t=>t.sym).filter(Boolean).join(',');
+
+async function fetchCryptoCompare(){
+  if(binanceOK||krakenOK)return;
+  try{
+    const url=`https://min-api.cryptocompare.com/data/pricemultifull?fsyms=${CC_SYMBOLS}&tsyms=USD`;
+    const r=await fetch(url,{signal:AbortSignal.timeout(7000)});
+    if(!r.ok)throw new Error('CC '+r.status);
+    const data=await r.json();
+    const raw=data&&data.RAW?data.RAW:null;
+    if(!raw)throw new Error('CC malformed');
+
+    let n=0;
+    TK.forEach(t=>{
+      const usd=raw[t.sym]&&raw[t.sym].USD?raw[t.sym].USD:null;
+      if(!usd)return;
+      const p=parseFloat(usd.PRICE);
+      if(!p||isNaN(p))return;
+      applyPrice(t.s,p,{
+        chg24:parseFloat(usd.CHANGEPCT24HOUR)||0,
+        vol:parseFloat(usd.VOLUME24HOURTO)||0,
+        high:parseFloat(usd.HIGH24HOUR)||p*1.02,
+        low:parseFloat(usd.LOW24HOUR)||p*.98
+      });
+      n++;
+    });
+
+    if(n>0&&!binanceOK&&!krakenOK){
+      setStatus('CRYPTOCOMPARE','CryptoCompare');
+      scheduleLiveUI(true);buildTkBar();
+    }
+  }catch(e){
+    // Keep silent here: CoinGecko + simulation already handle hard failures.
   }
 }
 
@@ -1106,6 +1218,10 @@ function maybeOpen(){
     t=pool[Math.floor(Math.random()*pool.length)];
     side=rsi>55?'LONG':rsi<45?'SHORT':(Math.random()>.5?'LONG':'SHORT');
   }
+  if(!t||!lp[t.s]||isNaN(lp[t.s])||lp[t.s]<=0){
+    t=TK.find(x=>lp[x.s]&&!isNaN(lp[x.s])&&lp[x.s]>0);
+    if(!t)return;
+  }
   const ep=lp[t.s];
   if(!ep||isNaN(ep)||ep<=0)return;
   const hi=Math.min(ph[t.s].length-1,99);
@@ -1266,7 +1382,13 @@ function cPCM(){document.getElementById('pcm').classList.remove('on');if(PC){PC.
 // ══════════════════════════════════════════
 // BOT TICK / TOGGLE / LOGS / MODAL / COLLAPSE
 // ══════════════════════════════════════════
-function botTick(){ticks++;if(ticks%4===0){maybeOpen();checkAC();renderPos();uMetrics();}if(ticks%18===0)renderSigs();}
+function botTick(){
+  ticks++;
+  checkAC();
+  if(ticks%2===0)maybeOpen();
+  if(ticks%2===0){renderPos();uMetrics();}
+  if(ticks%18===0)renderSigs();
+}
 function toggleBot(){
   active=!active;
   const btn=document.getElementById('tbtn'),dot=document.getElementById('sdot'),sub=document.getElementById('bsub');
