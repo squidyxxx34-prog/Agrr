@@ -15,10 +15,10 @@
 --b:#4d88ff;--b2:rgba(77,136,255,.12);
 --a:#ffaa00;--a2:rgba(255,170,0,.12);
 --pu:#b56aff;--pu2:rgba(181,106,255,.13);
---fn:'IBM Plex Mono',monospace;--rad:8px;}
+--fn:'IBM Plex Mono','Courier New',Courier,monospace;--rad:8px;}
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
 html{font-size:13px;}
-body{background:var(--bg0);color:var(--t1);font-family:var(--fn);min-height:100dvh;overflow-x:hidden;-webkit-font-smoothing:antialiased;}
+html,body{background:#06060a!important;}body{background:var(--bg0);color:var(--t1);font-family:'IBM Plex Mono','Courier New',Courier,monospace;min-height:100vh;min-height:100dvh;overflow-x:hidden;-webkit-font-smoothing:antialiased;}
 body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,.025) 2px,rgba(0,0,0,.025) 4px);pointer-events:none;z-index:9999;}
 
 /* ONBOARDING */
@@ -42,7 +42,7 @@ body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradi
 .ob-live-tag .ld{width:6px;height:6px;border-radius:50%;background:var(–g);animation:blink .9s infinite;}
 
 /* APP */
-#app{display:none;flex-direction:column;min-height:100dvh;}
+#app{display:none;flex-direction:column;min-height:100vh;min-height:100dvh;background:var(–bg0);}
 #app.on{display:flex;}
 
 /* TOPBAR */
@@ -53,7 +53,7 @@ body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradi
 .sdot.live{animation:blink 1.4s infinite;}
 .sdot.loading{background:var(–a);animation:blink .6s infinite;}
 @keyframes blink{0%,100%{opacity:1;}50%{opacity:.2;}}
-.tb-name{font-size:13px;font-weight:700;letter-spacing:.04em;}
+.tb-name{font-size:13px;font-weight:700;letter-spacing:.04em;color:var(–t1);}
 .tb-sub{font-size:9px;color:var(–t3);letter-spacing:.06em;}
 .tb-r{margin-left:auto;display:flex;gap:5px;align-items:center;}
 .btn{font-size:10px;padding:6px 12px;border-radius:5px;border:none;cursor:pointer;font-family:var(–fn);font-weight:700;letter-spacing:.05em;transition:all .15s;white-space:nowrap;line-height:1;}
@@ -91,7 +91,7 @@ body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradi
 .mstrip{display:grid;grid-template-columns:repeat(2,1fr);gap:1px;background:var(–line);border-bottom:1px solid var(–line);}
 .mc{background:var(–bg1);padding:11px 14px;}
 .ml{font-size:9px;color:var(–t3);letter-spacing:.1em;text-transform:uppercase;margin-bottom:3px;}
-.mv{font-size:18px;font-weight:700;line-height:1;}
+.mv{font-size:18px;font-weight:700;line-height:1;color:var(–t1);}
 .ms{font-size:10px;color:var(–t2);margin-top:2px;}
 .pos{color:var(–g)!important;}.neg{color:var(–r)!important;}
 
@@ -119,18 +119,9 @@ body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradi
 .cl{display:flex;align-items:center;gap:4px;font-size:9px;color:var(–t3);}
 .cl-dot{width:7px;height:7px;border-radius:50%;}
 .cl-line{width:12px;height:2px;}
-.cw{position:relative;width:100%;height:180px;}
+.cw{position:relative;width:100%;height:180px;background:transparent;}
 
-/* ORDERBOOK MINI */
-.ob-mini{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(–line);border-bottom:1px solid var(–line);}
-.ob-side{background:var(–bg1);padding:8px 14px;}
-.ob-side-title{font-size:9px;letter-spacing:.1em;text-transform:uppercase;margin-bottom:6px;}
-.ob-ask-title{color:var(–r);}
-.ob-bid-title{color:var(–g);}
-.ob-row-item{display:flex;justify-content:space-between;font-size:10px;padding:2px 0;font-variant-numeric:tabular-nums;}
-.ob-price-ask{color:var(–r);}
-.ob-price-bid{color:var(–g);}
-.ob-qty{color:var(–t3);}
+/* orderbook removed */
 
 /* SECTIONS */
 .sec{border-bottom:1px solid var(–line);background:var(–bg1);}
@@ -159,7 +150,7 @@ body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradi
 .rg{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
 .rl{font-size:9px;color:var(–t3);text-transform:uppercase;letter-spacing:.1em;margin-bottom:4px;}
 .rv{font-size:14px;font-weight:700;}
-input[type=range]{width:100%;height:2px;-webkit-appearance:none;background:var(–bg4);border-radius:1px;outline:none;cursor:pointer;margin-top:6px;}
+input[type=range]{width:100%;height:2px;-webkit-appearance:none;background:#212130;border-radius:1px;outline:none;cursor:pointer;margin-top:6px;}
 input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;border-radius:50%;background:var(–b);border:2px solid var(–bg1);cursor:pointer;box-shadow:0 0 0 3px var(–b2);}
 input[type=range]::-moz-range-thumb{width:12px;height:12px;border-radius:50%;background:var(–b);border:2px solid var(–bg1);}
 .ar{margin-top:12px;}
@@ -231,7 +222,7 @@ input[type=range]::-moz-range-thumb{width:12px;height:12px;border-radius:50%;bac
 .tmbox{background:var(–bg2);border:1px solid var(–line2);border-radius:12px;max-height:78vh;display:flex;flex-direction:column;overflow:hidden;}
 .tmsr{display:flex;align-items:center;gap:10px;padding:12px 14px;border-bottom:1px solid var(–line);}
 .tmsr span{color:var(–t3);font-size:14px;}
-#tksearch{flex:1;background:transparent;border:none;outline:none;color:var(–t1);font-family:var(–fn);font-size:14px;}
+#tksearch{flex:1;background:transparent;border:none;outline:none;color:#f0f0f8;font-family:‘IBM Plex Mono’,‘Courier New’,monospace;font-size:14px;}
 .tmcan{font-size:11px;color:var(–t2);cursor:pointer;padding:4px 8px;border-radius:4px;background:var(–bg3);border:1px solid var(–line);font-family:var(–fn);}
 .tklist{overflow-y:auto;flex:1;}
 .tklist::-webkit-scrollbar{width:2px;}
@@ -584,25 +575,21 @@ function liqPrice(side,entry,lev){
 }
 
 function setStatus(mode,label){
+  if(srcMode===mode)return; // no-op if same mode
   srcMode=mode;
   const dot=document.getElementById('sdot');
   const sub=document.getElementById('bsub');
-  const src=document.getElementById('lb-src');
   const err=document.getElementById('lb-err');
-  if(mode==='BINANCE_WS'){
+  if(mode==='BINANCE_WS'||mode==='KRAKEN_WS'){
     dot.className='sdot live';sub.textContent='LIVE';
-    err.classList.remove('show');src.textContent='Binance WS \u00b7 '+ts();
-  }else if(mode==='KRAKEN_WS'){
-    dot.className='sdot live';sub.textContent='LIVE';
-    err.classList.remove('show');src.textContent='Kraken WS \u00b7 '+ts();
+    err.classList.remove('show');
   }else if(mode==='COINGECKO'){
     dot.className='sdot live';sub.textContent='REST';
-    err.classList.remove('show');src.textContent='CoinGecko \u00b7 '+ts();
+    err.classList.remove('show');
   }else{
     dot.className='sdot loading';sub.textContent='SIM';
     err.classList.add('show');
     document.getElementById('lb-err-txt').textContent='\u26a0 API indisponible \u2014 simulation';
-    src.textContent='Simulation';
   }
 }
 
@@ -880,11 +867,24 @@ function uPD(){
 // UI TICK — refreshes display at 500ms
 // Separates fast UI from slow bot logic
 // ════════════════════════════════════════════════
+// Track if prices actually changed since last render
+let lastRenderHash = '';
 function uiTick(){
+  // Always update clock display
+  const src = document.getElementById('lb-src');
+  if(src){
+    const age = lastWSTick>0 ? Math.round((Date.now()-lastWSTick)/1000) : null;
+    const srcName = srcMode==='BINANCE_WS'?'Binance WS':srcMode==='KRAKEN_WS'?'Kraken WS':srcMode==='COINGECKO'?'CoinGecko':'Simulation';
+    src.textContent = srcName + ' · ' + ts() + (age!==null&&age<10?' · '+age+'s':'');
+  }
+  // Price hash — only redraw if prices changed
+  const hash = Object.values(lp).slice(0,10).map(v=>v?.toFixed?.(6)).join('|');
+  const changed = hash !== lastRenderHash;
+  if(changed) lastRenderHash = hash;
   uPD();
-  if(MC)uMC();
+  if(changed && MC) uMC();
   uMetrics();
-  renderPos(); // redraw positions with latest prices
+  renderPos();
 }
 
 // ════════════════════════════════════════════════
