@@ -351,10 +351,10 @@ input[type=range]::-moz-range-thumb{width:12px;height:12px;border-radius:50%;bac
       <div class="co" id="rk" style="max-height:400px;">
         <div class="ri">
           <div class="rg">
-            <div><div class="rl">Levier max</div><div class="rv" id="rvl" style="color:var(--a);">10x</div><input type="range" min="1" max="25" value="10" id="rl" oninput="uR()"></div>
+            <div><div class="rl">Levier max</div><div class="rv" id="rvl" style="color:var(--a);">10x</div><input type="range" min="1" max="10" value="3" id="rl" oninput="uR()"></div>
             <div><div class="rl">Taille</div><div class="rv" id="rvs" style="color:var(--b);">20%</div><input type="range" min="5" max="100" value="20" id="rs" oninput="uR()"></div>
-            <div><div class="rl">Stop-loss</div><div class="rv" id="rvsl" style="color:var(--r);">3%</div><input type="range" min="1" max="15" value="3" id="rsl" oninput="uR()"></div>
-            <div><div class="rl">Take-profit</div><div class="rv" id="rvtp" style="color:var(--g);">7%</div><input type="range" min="1" max="30" value="7" id="rtp" oninput="uR()"></div>
+            <div><div class="rl">Stop-loss</div><div class="rv" id="rvsl" style="color:var(--r);">3%</div><input type="range" min="0.5" max="10" value="1.5" step="0.5" id="rsl" oninput="uR()"></div>
+            <div><div class="rl">Take-profit</div><div class="rv" id="rvtp" style="color:var(--g);">7%</div><input type="range" min="1" max="20" value="4" step="0.5" id="rtp" oninput="uR()"></div>
           </div>
           <div class="ar">
             <div class="rl">Agressivit&eacute; &middot; <span id="rvag" style="color:var(--r);font-weight:700;">&#128293; &Eacute;LEV&Eacute;</span></div>
@@ -555,10 +555,12 @@ function calcPnlPct(side,entry,cur,lev){
 // TP price: when position gain = tp% of position value
 // position gain% = price_move% * lev → price_move% = tp%/lev
 function tpPrice(side,entry,tp,lev){
-  return side==='LONG'?entry*(1+tp/100/lev):entry*(1-tp/100/lev);
+  // tp = price % move needed to trigger TP
+  return side==='LONG'?entry*(1+tp/100):entry*(1-tp/100);
 }
 function slPrice(side,entry,sl,lev){
-  return side==='LONG'?entry*(1-sl/100/lev):entry*(1+sl/100/lev);
+  // sl = price % move needed to trigger SL
+  return side==='LONG'?entry*(1-sl/100):entry*(1+sl/100);
 }
 function liqPrice(side,entry,lev){
   // Liquidation at 90% margin loss
@@ -642,7 +644,7 @@ function initApp(){
   setInterval(uiTick,500);
 
   setInterval(botTick,800);
-  setInterval(autoAdapt,12000);
+  setInterval(autoAdapt,8000);
 }
 
 // ════════════════════════════════════════════════
@@ -942,8 +944,8 @@ function setSt(idx){
 function uR(){
   st('rvl',document.getElementById('rl').value+'x');
   st('rvs',document.getElementById('rs').value+'%');
-  st('rvsl',document.getElementById('rsl').value+'%');
-  st('rvtp',document.getElementById('rtp').value+'%');
+  st('rvsl',parseFloat(document.getElementById('rsl').value).toFixed(1)+'%');
+  st('rvtp',parseFloat(document.getElementById('rtp').value).toFixed(1)+'%');
 }
 function setAg(lv){
   agr=lv;
@@ -965,40 +967,120 @@ function toggleAuto(){
 function autoAdapt(){
   if(!autoMode||!active)return;
   const wr=tt>0?tw/tt:0.5;
-  const h=ph[cur.s];if(!h||h.length<20)return;
-  const rsi=calcRSI(h,14),ema9=calcEMA(h,9),ema21=calcEMA(h,21);
-  const vol=calcVol(h,20),trend=(ema9-ema21)/ema21;
+  const h=ph[cur.s];if(!h||h.length<30)return;
+
+  // ── Real indicators ─────────────────────────────
+  const rsi=calcRSI(h,14);
+  const rsi5=calcRSI(h,5);        // fast RSI
+  const ema9=calcEMA(h,9);
+  const ema21=calcEMA(h,21);
+  const ema50=calcEMA(h,50);
+  const sma20=calcSMA(h,20);
+  const vol=calcVol(h,20);
+  const trend=(ema9-ema21)/ema21;  // short trend
+  const bigTrend=(ema21-ema50)/ema50; // medium trend
+  const str=Math.abs(trend);
+
+  // ── Bollinger position ──────────────────────────
+  const std=Math.sqrt(h.slice(-20).reduce((a,b)=>a+(b-sma20)**2,0)/20);
+  const bbU=sma20+2*std,bbL=sma20-2*std;
+  const p=lp[cur.s];
+  const bbPct=std>0?Math.min(100,Math.max(0,(p-bbL)/(bbU-bbL)*100)):50;
+
+  // ── Win rate adaptive multiplier ────────────────
+  // Good perf → allow slightly higher params
+  // Bad perf → cut aggression hard
+  const perfMult = tt<5 ? 1.0 :
+    wr>0.65 ? 1.2 :
+    wr>0.55 ? 1.0 :
+    wr>0.45 ? 0.8 :
+    wr>0.35 ? 0.6 : 0.4;
+
+  // ── Regime detection ────────────────────────────
+  // ns=strategy, nl=leverage, nsl=sl%, ntp=tp%, nag=agr, nz=size%
+  // RULES: TP always >= 2x SL. Leverage max 5x in auto (safer).
   let ns,nl,nsl,ntp,nag,nz,desc;
-  if(vol<0.003){ns=3;nl=4;nsl=1;ntp=3;nag=2;nz=12;desc='Grid 4x consolidation';}
-  else if(Math.abs(trend)<0.002&&rsi>40&&rsi<60){ns=0;nl=6;nsl=2;ntp=5;nag=2;nz=15;desc='Scalp 6x range';}
-  else if(trend>0.003&&rsi<70&&ema9>ema21){ns=2;nl=14;nsl=4;ntp=13;nag=5;nz=28;desc='Breakout LONG 14x';}
-  else if(trend<-0.003&&rsi>30&&ema9<ema21){ns=2;nl=12;nsl=4;ntp=11;nag=4;nz=24;desc='Breakout SHORT 12x';}
-  else if(rsi>60&&ema9>ema21){ns=1;nl=10;nsl=3;ntp=9;nag=4;nz=22;desc='Momentum LONG RSI='+rsi.toFixed(0);}
-  else if(rsi<40&&ema9<ema21){ns=1;nl=10;nsl=3;ntp=9;nag=4;nz=22;desc='Momentum SHORT RSI='+rsi.toFixed(0);}
-  else if(vol>0.015){ns=0;nl=18;nsl=6;ntp=12;nag=5;nz=30;desc='Scalp 18x vol haute';}
-  else{ns=0;nl=10;nsl=3;ntp=8;nag=4;nz=20;desc='Scalp 10x standard';}
-  if(tt>8){
-    if(wr<0.35){nl=Math.max(2,nl-4);nsl=Math.max(1,nsl-1);nz=Math.max(8,nz-8);desc+='\u2193Risk';}
-    else if(wr>0.70){nl=Math.min(25,nl+2);ntp=Math.min(28,ntp+2);desc+='\u2191Risk';}
+
+  if(vol<0.002){
+    // Dead market — don't trade
+    ns=3;nl=2;nsl=0.8;ntp=1.6;nag=1;nz=8;
+    desc='Marché mort → Grid 2x';
+  } else if(vol<0.004&&str<0.001){
+    // Tight range — scalp tight with good ratio
+    ns=0;nl=3;nsl=1;ntp=2.5;nag=2;nz=12;
+    desc='Range → Scalp 3x SL1% TP2.5%';
+  } else if(bigTrend>0.004&&trend>0.002&&rsi>50&&rsi<72&&ema9>ema21&&ema21>ema50){
+    // Strong confirmed uptrend — ride it
+    ns=1;nl=4;nsl=1.5;ntp=4;nag=3;nz=20;
+    desc='Uptrend confirmé → 4x SL1.5% TP4%';
+  } else if(bigTrend<-0.004&&trend<-0.002&&rsi<50&&rsi>28&&ema9<ema21&&ema21<ema50){
+    // Strong confirmed downtrend
+    ns=1;nl=4;nsl=1.5;ntp=4;nag=3;nz=20;
+    desc='Downtrend confirmé → 4x SL1.5% TP4%';
+  } else if(str>0.003&&rsi5>60&&rsi<70&&bbPct>55){
+    // Breakout up — confirmed by fast RSI + BB position
+    ns=2;nl=3;nsl=1.5;ntp=4;nag=3;nz=18;
+    desc='Breakout haussier → 3x SL1.5% TP4%';
+  } else if(str>0.003&&rsi5<40&&rsi>30&&bbPct<45){
+    // Breakout down
+    ns=2;nl=3;nsl=1.5;ntp=4;nag=3;nz=18;
+    desc='Breakout baissier → 3x SL1.5% TP4%';
+  } else if(rsi>65&&ema9>ema21&&vol>0.005){
+    // Momentum up — moderate
+    ns=1;nl=3;nsl=1.2;ntp=3;nag=3;nz=15;
+    desc='Momentum LONG RSI='+rsi.toFixed(0)+' → 3x';
+  } else if(rsi<35&&ema9<ema21&&vol>0.005){
+    // Momentum down
+    ns=1;nl=3;nsl=1.2;ntp=3;nag=3;nz=15;
+    desc='Momentum SHORT RSI='+rsi.toFixed(0)+' → 3x';
+  } else if(vol>0.012){
+    // High vol — scalp fast, tight SL
+    ns=0;nl=2;nsl=1;ntp=2.5;nag=3;nz=12;
+    desc='Vol haute → Scalp 2x SL1% TP2.5%';
+  } else {
+    // No clear signal — minimal position, wait
+    ns=0;nl=2;nsl=0.8;ntp=2;nag=1;nz=8;
+    desc='Attente signal → 2x minimal';
   }
-  // Best token
-  let best=cur,bScore=-1;
-  TK.slice(0,20).forEach(tk=>{
-    const th=ph[tk.s];if(!th||th.length<20)return;
-    const tr=calcRSI(th,14),te9=calcEMA(th,9),te21=calcEMA(th,21);
-    const score=Math.abs((te9-te21)/te21)*100+(Math.abs(tr-50)/50)*20;
-    if(score>bScore){bScore=score;best=tk;}
-  });
-  if(best.s!==cur.s){
-    cur=best;buildTkBar();uPD();
-    fetchKlines(cur.s,100).then(c=>{if(c?.length>10){ph[cur.s]=c;if(MC)uMC();}});
-    addLog('AUTO','Token \u2192 '+cur.sym+' RSI='+calcRSI(ph[cur.s],14).toFixed(0),'tau');
+
+  // Apply performance multiplier to size only (not leverage)
+  nz = Math.round(Math.min(30, Math.max(5, nz * perfMult)));
+
+  // Hard caps in auto mode — protect capital
+  nl = Math.min(nl, 5);          // max 5x leverage in auto
+  nsl = Math.max(0.5, nsl);      // min 0.5% SL
+  ntp = Math.max(nsl*2, ntp);    // TP always >= 2x SL
+  nz = Math.min(25, nz);         // max 25% per position
+
+  // ── Best token scanner ──────────────────────────
+  if(autoMode){
+    let best=cur,bScore=-1;
+    TK.slice(0,20).forEach(tk=>{
+      const th=ph[tk.s];if(!th||th.length<30)return;
+      const tr=calcRSI(th,14);
+      const te9=calcEMA(th,9),te21=calcEMA(th,21),te50=calcEMA(th,50);
+      const tVol=calcVol(th,20);
+      const tTrend=Math.abs((te9-te21)/te21);
+      const tBigTrend=Math.abs((te21-te50)/te50);
+      // Score: strong trend + RSI divergence from 50 + volume
+      const score=tTrend*60+tBigTrend*40+(Math.abs(tr-50)/50)*15+tVol*10;
+      if(score>bScore){bScore=score;best=tk;}
+    });
+    if(best.s!==cur.s){
+      cur=best;buildTkBar();uPD();
+      fetchKlines(cur.s,100).then(c=>{if(c?.length>10){ph[cur.s]=c;if(MC)uMC();}});
+      addLog('AUTO','Token → '+cur.sym+' RSI='+calcRSI(ph[cur.s],14).toFixed(0),'tau');
+    }
   }
+
   setSt(ns);
-  ['rl','rsl','rtp','rs'].forEach((id,idx)=>document.getElementById(id).value=[nl,nsl,ntp,nz][idx]);
+  document.getElementById('rl').value=nl;
+  document.getElementById('rsl').value=nsl;
+  document.getElementById('rtp').value=ntp;
+  document.getElementById('rs').value=nz;
   setAg(nag);uR();
-  st('ab-sub','RSI='+rsi.toFixed(0)+' \u00b7 '+desc);
-  addLog('AUTO','RSI='+rsi.toFixed(0)+' \u00b7 '+desc,'tau');
+  st('ab-sub','RSI='+rsi.toFixed(0)+' WR='+(tt>0?(wr*100).toFixed(0)+'%':'?')+' · '+desc);
+  addLog('AUTO','RSI='+rsi.toFixed(0)+' WR='+(tt>0?(wr*100).toFixed(0)+'%':'?')+' · '+desc,'tau');
 }
 
 // ════════════════════════════════════════════════
@@ -1075,38 +1157,73 @@ function uMC(){
 // BOT LOGIC
 // ════════════════════════════════════════════════
 function maybeOpen(){
-  if(!active||pos.length>=6)return;
-  const prob=[0,.04,.06,.09,.13,.18][agr]||.09;
+  if(!active||pos.length>=4)return; // max 4 concurrent (was 6)
+  // Reduce open frequency — quality over quantity
+  const prob=[0,.02,.04,.06,.09,.12][agr]||.06;
   if(Math.random()>prob)return;
   const lev=parseInt(document.getElementById('rl').value);
-  const sz=Math.max(10,(cap+tg)*(parseInt(document.getElementById('rs').value)/100)*(0.5+Math.random()*.8));
-  let t,side;
+  const sz=Math.max(10,(cap+tg)*(parseInt(document.getElementById('rs').value)/100)*(0.7+Math.random()*.3));
+  let t,side,confidence=0;
+
   if(autoMode){
+    // STRONG SIGNAL REQUIRED: RSI + EMA + EMA50 alignment
     const cands=TK.slice(0,25).filter(tk=>{
-      const th=ph[tk.s];if(!th||th.length<15)return false;
-      const r=calcRSI(th,14),e9=calcEMA(th,9),e21=calcEMA(th,21);
-      return(r>58&&e9>e21)||(r<42&&e9<e21);
+      const th=ph[tk.s];if(!th||th.length<50)return false;
+      const r=calcRSI(th,14);
+      const r5=calcRSI(th,5);
+      const e9=calcEMA(th,9),e21=calcEMA(th,21),e50=calcEMA(th,50);
+      const v=calcVol(th,20);
+      if(v<0.002)return false; // skip dead markets
+      // LONG: fast RSI high + all EMAs aligned up
+      const longSig=r>58&&r5>60&&e9>e21&&e21>e50;
+      // SHORT: fast RSI low + all EMAs aligned down
+      const shortSig=r<42&&r5<40&&e9<e21&&e21<e50;
+      return longSig||shortSig;
     }).map(tk=>{
-      const th=ph[tk.s],r=calcRSI(th,14),e9=calcEMA(th,9),e21=calcEMA(th,21);
-      return{tk,r,trend:Math.abs((e9-e21)/e21),side:r>58?'LONG':'SHORT'};
-    }).sort((a,b)=>b.trend-a.trend);
-    if(cands.length){t=cands[0].tk;side=cands[0].side;}
-    else{t=cur;side=Math.random()>.5?'LONG':'SHORT';}
+      const th=ph[tk.s];
+      const r=calcRSI(th,14),r5=calcRSI(th,5);
+      const e9=calcEMA(th,9),e21=calcEMA(th,21),e50=calcEMA(th,50);
+      const trend=Math.abs((e9-e21)/e21);
+      const bigTrend=Math.abs((e21-e50)/e50);
+      const conf=trend*50+bigTrend*50+(Math.abs(r-50)/50)*20;
+      const side=r>58?'LONG':'SHORT';
+      return{tk,r,r5,conf,side};
+    }).sort((a,b)=>b.conf-a.conf);
+
+    if(!cands.length){
+      // No strong signal — skip this tick entirely
+      return;
+    }
+    const best=cands[0];
+    t=best.tk;side=best.side;confidence=best.conf;
   }else{
-    const h=ph[cur.s];const rsi=h?.length>14?calcRSI(h,14):50;
-    const pool=Math.random()>.55?[cur]:TK.slice(0,15);
-    t=pool[Math.floor(Math.random()*pool.length)];
-    side=rsi>55?'LONG':rsi<45?'SHORT':(Math.random()>.5?'LONG':'SHORT');
+    // Manual mode: RSI bias, current token
+    const h=ph[cur.s];
+    if(!h||h.length<14)return;
+    const rsi=calcRSI(h,14);
+    const e9=calcEMA(h,9),e21=calcEMA(h,21);
+    // Require at least RSI + EMA alignment
+    const longOK=rsi>55&&e9>e21;
+    const shortOK=rsi<45&&e9<e21;
+    if(!longOK&&!shortOK&&Math.random()>.3)return; // filter weak signals
+    t=cur;
+    side=longOK?'LONG':shortOK?'SHORT':(Math.random()>.5?'LONG':'SHORT');
   }
+
   const ep=lp[t.s];
   if(!ep||isNaN(ep)||ep<=0)return;
+
+  // Don't open same token same side if already have position
+  if(pos.some(p=>p.sym===t.s&&p.side===side))return;
+
   pos.push({sym:t.s,side,lev,size:sz,entry:ep});
   if(!mk[t.s])mk[t.s]=[];
   const hi=Math.min(ph[t.s].length-1,199);
   mk[t.s].push({side,price:ep,hi});
   if(mk[t.s].length>8)mk[t.s].shift();
   const rv=ph[t.s]?.length>14?calcRSI(ph[t.s],14).toFixed(0):'?';
-  addLog('ORDRE',`${side} ${t.sym} $${sz.toFixed(0)} ${lev}x @${fp(ep)} RSI=${rv}`,'to');
+  const conf=confidence>0?` conf=${confidence.toFixed(0)}`:'';
+  addLog('ORDRE',`${side} ${t.sym} $${sz.toFixed(0)} ${lev}x @${fp(ep)} RSI=${rv}${conf}`,'to');
 }
 
 function checkAC(){
@@ -1116,9 +1233,12 @@ function checkAC(){
   for(let i=pos.length-1;i>=0;i--){
     const p=pos[i],cp=lp[p.sym];
     if(!cp||isNaN(cp)||cp<=0)continue;
-    const pct=calcPnlPct(p.side,p.entry,cp,p.lev);
-    if(pct>=tpV)closeP(i,'TP');
-    else if(pct<=-slV)closeP(i,'SL');
+    // Price move % (not position %)
+    const pricePct=p.side==='LONG'
+      ?(cp-p.entry)/p.entry*100
+      :(p.entry-cp)/p.entry*100;
+    if(pricePct>=tpV)closeP(i,'TP');
+    else if(pricePct<=-slV)closeP(i,'SL');
   }
 }
 
