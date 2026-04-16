@@ -653,51 +653,62 @@ function initApp(){
 // Update interval: ~1s per token from Binance
 // ════════════════════════════════════════════════
 function connectBinanceWS(){
-  if(wsBinance){try{wsBinance.close();}catch(e){}}
-  const streams=TOP.map(s=>s.toLowerCase()+'@miniTicker').join('/');
-  wsBinance=new WebSocket(`wss://stream.binance.com:9443/stream?streams=${streams}`);
+  if(wsBinance){
+    try{wsBinance.close();}catch(e){}
+  }
 
-  const timeout=setTimeout(()=>{
-    if(wsBinance.readyState!==WebSocket.OPEN){
+  const streams = TOP.slice(0,10)
+    .map(s=>s.toLowerCase()+'@miniTicker')
+    .join('/');
+
+  wsBinance = new WebSocket(
+    `wss://stream.binance.com:9443/stream?streams=${streams}`
+  );
+
+  const timeout = setTimeout(()=>{
+    if(wsBinance.readyState !== WebSocket.OPEN){
+      console.warn("Timeout Binance");
       wsBinance.close();
-      addLog('WS','Binance timeout \u2192 Kraken','ts');
       connectKrakenWS();
     }
-  },6000);
+  },10000);
 
   wsBinance.onopen=()=>{
     clearTimeout(timeout);
+    console.log("Binance WS connecté");
     binanceOK=true;
-    setStatus('BINANCE_WS','Binance WS');
-    addLog('LIVE','Binance WS OK','tlive');
   };
 
   wsBinance.onmessage=(e)=>{
     try{
       const msg=JSON.parse(e.data);
-      const d=msg.data||msg;
-      const sym=d.s;
+      const d=msg.data;
+
+      if(!d || !d.s || !d.c) return;
+
       const price=parseFloat(d.c);
-      if(!sym||!price||isNaN(price))return;
-      applyPrice(sym,price,{
+
+      applyPrice(d.s,price,{
         chg24:d.o?((price-parseFloat(d.o))/parseFloat(d.o)*100):0,
         vol:parseFloat(d.q)||0,
         high:parseFloat(d.h)||price,
         low:parseFloat(d.l)||price
       });
-      lastWSTick=Date.now();
-      binanceOK=true;
-      if(srcMode!=='BINANCE_WS')setStatus('BINANCE_WS','Binance WS');
-    }catch(e){}
+
+    }catch(e){
+      console.error("Erreur WS:", e);
+    }
   };
 
-  wsBinance.onerror=()=>{binanceOK=false;connectKrakenWS();};
+  wsBinance.onerror=(e)=>{
+    console.error("WS error:", e);
+    connectKrakenWS();
+  };
+
   wsBinance.onclose=()=>{
-    binanceOK=false;
-    if(srcMode==='BINANCE_WS')setTimeout(()=>connectBinanceWS(),5000);
+    setTimeout(connectBinanceWS,5000);
   };
 }
-
 // ════════════════════════════════════════════════
 // LAYER 2 — KRAKEN WEBSOCKET (backup)
 // ════════════════════════════════════════════════
