@@ -158,7 +158,7 @@ input[type=range]::-moz-range-thumb{width:12px;height:12px;border-radius:50%;bac
 .ad.l1{background:#00e87a;}.ad.l2{background:#88dd44;}.ad.l3{background:#ffaa00;}.ad.l4{background:#ff7700;}.ad.l5{background:#ff3355;box-shadow:0 0 6px #ff3355;}
 
 /* POSITIONS */
-.pcard{margin:0 14px 10px;background:var(--bg2);border:1px solid var(--line);border-radius:var(--rad);overflow:hidden;animation:su .25s ease;}
+.pcard{margin:0 14px 10px;background:var(--bg2);border:1px solid var(--line);border-radius:var(--rad);overflow:hidden;}
 .pct{display:flex;align-items:center;padding:10px 12px;gap:8px;border-bottom:1px solid var(--line);}
 .ppair{font-size:13px;font-weight:700;}
 .pside{font-size:9px;padding:2px 7px;border-radius:3px;font-weight:700;letter-spacing:.06em;}
@@ -863,21 +863,21 @@ function uPD(){
 // Track if prices actually changed since last render
 let lastRenderHash = '';
 function uiTick(){
-  // Always update clock display
+  // Clock always ticks
   const src = document.getElementById('lb-src');
   if(src){
     const age = lastWSTick>0 ? Math.round((Date.now()-lastWSTick)/1000) : null;
     const srcName = srcMode==='BINANCE_WS'?'Binance WS':srcMode==='KRAKEN_WS'?'Kraken WS':srcMode==='COINGECKO'?'CoinGecko':'Simulation';
     src.textContent = srcName + ' · ' + ts() + (age!==null&&age<10?' · '+age+'s':'');
   }
-  // Price hash — only redraw if prices changed
+  // Price changed?
   const hash = Object.values(lp).slice(0,10).map(v=>v?.toFixed?.(6)).join('|');
   const changed = hash !== lastRenderHash;
   if(changed) lastRenderHash = hash;
-  uPD();
-  if(changed && MC) uMC();
-  uMetrics();
-  renderPos();
+  uPD();                          // updates header price + change %
+  if(changed && MC) uMC();        // chart: only on price change
+  uMetrics();                     // metrics strip
+  renderPos();                    // positions: in-place update, no DOM recreate
 }
 
 // ════════════════════════════════════════════════
@@ -966,264 +966,219 @@ function toggleAuto(){
 }
 function autoAdapt(){
   if(!autoMode||!active)return;
-  const wr=tt>0?tw/tt:0.5;
-  const h=ph[cur.s];if(!h||h.length<30)return;
+  const wr = tt>0 ? tw/tt : 0.5;
+  const h = ph[cur.s];
+  if(!h||h.length<50)return;
 
-  // ── Real indicators ─────────────────────────────
-  const rsi=calcRSI(h,14);
-  const rsi5=calcRSI(h,5);        // fast RSI
-  const ema9=calcEMA(h,9);
-  const ema21=calcEMA(h,21);
-  const ema50=calcEMA(h,50);
-  const sma20=calcSMA(h,20);
-  const vol=calcVol(h,20);
-  const trend=(ema9-ema21)/ema21;  // short trend
-  const bigTrend=(ema21-ema50)/ema50; // medium trend
-  const str=Math.abs(trend);
+  // ── Indicators ──────────────────────────────────────────────────
+  const rsi14 = calcRSI(h,14);
+  const rsi5  = calcRSI(h,5);
+  const ema9  = calcEMA(h,9);
+  const ema21 = calcEMA(h,21);
+  const ema50 = calcEMA(h,50);
+  const sma20 = calcSMA(h,20);
+  const vol   = calcVol(h,20);
+  const p     = lp[cur.s];
+  const std   = Math.sqrt(h.slice(-20).reduce((a,b)=>a+(b-sma20)**2,0)/20);
+  const bbU   = sma20+2*std, bbL=sma20-2*std;
+  const bbPct = std>0 ? Math.min(100,Math.max(0,(p-bbL)/(bbU-bbL)*100)) : 50;
+  const shortTrend = (ema9-ema21)/ema21;
+  const midTrend   = (ema21-ema50)/ema50;
+  // Momentum: compare last 5 closes vs 5 closes before
+  const mom5  = h.length>10 ? (h.slice(-5).reduce((a,b)=>a+b,0)/5 - h.slice(-10,-5).reduce((a,b)=>a+b,0)/5) / (h.slice(-10,-5).reduce((a,b)=>a+b,0)/5) * 100 : 0;
 
-  // ── Bollinger position ──────────────────────────
-  const std=Math.sqrt(h.slice(-20).reduce((a,b)=>a+(b-sma20)**2,0)/20);
-  const bbU=sma20+2*std,bbL=sma20-2*std;
-  const p=lp[cur.s];
-  const bbPct=std>0?Math.min(100,Math.max(0,(p-bbL)/(bbU-bbL)*100)):50;
+  // ── Win rate adaptive size multiplier ───────────────────────────
+  const wMult = tt<5 ? 1.0 : wr>0.60 ? 1.2 : wr>0.50 ? 1.0 : wr>0.40 ? 0.75 : 0.5;
 
-  // ── Win rate adaptive multiplier ────────────────
-  // Good perf → allow slightly higher params
-  // Bad perf → cut aggression hard
-  const perfMult = tt<5 ? 1.0 :
-    wr>0.65 ? 1.2 :
-    wr>0.55 ? 1.0 :
-    wr>0.45 ? 0.8 :
-    wr>0.35 ? 0.6 : 0.4;
-
-  // ── Regime detection ────────────────────────────
-  // ns=strategy, nl=leverage, nsl=sl%, ntp=tp%, nag=agr, nz=size%
-  // RULES: TP always >= 2x SL. Leverage max 5x in auto (safer).
+  // ── Strategy params ─────────────────────────────────────────────
   let ns,nl,nsl,ntp,nag,nz,desc;
 
-  if(vol<0.002){
-    // Dead market — don't trade
-    ns=3;nl=2;nsl=0.8;ntp=1.6;nag=1;nz=8;
-    desc='Marché mort → Grid 2x';
-  } else if(vol<0.004&&str<0.001){
-    // Tight range — scalp tight with good ratio
-    ns=0;nl=3;nsl=1;ntp=2.5;nag=2;nz=12;
-    desc='Range → Scalp 3x SL1% TP2.5%';
-  } else if(bigTrend>0.004&&trend>0.002&&rsi>50&&rsi<72&&ema9>ema21&&ema21>ema50){
-    // Strong confirmed uptrend — ride it
-    ns=1;nl=4;nsl=1.5;ntp=4;nag=3;nz=20;
-    desc='Uptrend confirmé → 4x SL1.5% TP4%';
-  } else if(bigTrend<-0.004&&trend<-0.002&&rsi<50&&rsi>28&&ema9<ema21&&ema21<ema50){
+  // RULE: TP >= 2.5x SL always. Max leverage 4x in AUTO.
+  // SL/TP are price-move % (e.g. SL=1.5 → price drops 1.5% → stop)
+
+  if(vol < 0.0015){
+    // Coma market — tiny positions, wait
+    ns=3; nl=2; nsl=0.6; ntp=1.5; nag=1; nz=6;
+    desc='Coma \u2192 attente';
+
+  } else if(
+    midTrend>0.003 && shortTrend>0.001 &&
+    rsi14>52 && rsi14<72 && rsi5>55 &&
+    ema9>ema21 && ema21>ema50 &&
+    bbPct>45
+  ){
+    // Strong confirmed uptrend — all 3 EMAs aligned, RSI healthy, above BB mid
+    // Best setup: ride momentum
+    ns=1; nl=3; nsl=1.2; ntp=3.5; nag=3; nz=22;
+    desc='Uptrend fort EMA+RSI \u2192 LONG 3x';
+
+  } else if(
+    midTrend<-0.003 && shortTrend<-0.001 &&
+    rsi14<48 && rsi14>28 && rsi5<45 &&
+    ema9<ema21 && ema21<ema50 &&
+    bbPct<55
+  ){
     // Strong confirmed downtrend
-    ns=1;nl=4;nsl=1.5;ntp=4;nag=3;nz=20;
-    desc='Downtrend confirmé → 4x SL1.5% TP4%';
-  } else if(str>0.003&&rsi5>60&&rsi<70&&bbPct>55){
-    // Breakout up — confirmed by fast RSI + BB position
-    ns=2;nl=3;nsl=1.5;ntp=4;nag=3;nz=18;
-    desc='Breakout haussier → 3x SL1.5% TP4%';
-  } else if(str>0.003&&rsi5<40&&rsi>30&&bbPct<45){
-    // Breakout down
-    ns=2;nl=3;nsl=1.5;ntp=4;nag=3;nz=18;
-    desc='Breakout baissier → 3x SL1.5% TP4%';
-  } else if(rsi>65&&ema9>ema21&&vol>0.005){
-    // Momentum up — moderate
-    ns=1;nl=3;nsl=1.2;ntp=3;nag=3;nz=15;
-    desc='Momentum LONG RSI='+rsi.toFixed(0)+' → 3x';
-  } else if(rsi<35&&ema9<ema21&&vol>0.005){
-    // Momentum down
-    ns=1;nl=3;nsl=1.2;ntp=3;nag=3;nz=15;
-    desc='Momentum SHORT RSI='+rsi.toFixed(0)+' → 3x';
-  } else if(vol>0.012){
-    // High vol — scalp fast, tight SL
-    ns=0;nl=2;nsl=1;ntp=2.5;nag=3;nz=12;
-    desc='Vol haute → Scalp 2x SL1% TP2.5%';
+    ns=1; nl=3; nsl=1.2; ntp=3.5; nag=3; nz=22;
+    desc='Downtrend fort EMA+RSI \u2192 SHORT 3x';
+
+  } else if(
+    rsi14 > 68 && rsi5 > 70 &&
+    bbPct > 78 && mom5 > 0.3 &&
+    ema9 > ema21
+  ){
+    // Overbought + breakout up — scalp short reversal
+    ns=0; nl=2; nsl=1.0; ntp=2.5; nag=2; nz=12;
+    desc='Surachat BB \u2192 SHORT scalp 2x';
+
+  } else if(
+    rsi14 < 32 && rsi5 < 30 &&
+    bbPct < 22 && mom5 < -0.3 &&
+    ema9 < ema21
+  ){
+    // Oversold + breakdown — scalp long reversal
+    ns=0; nl=2; nsl=1.0; ntp=2.5; nag=2; nz=12;
+    desc='Survente BB \u2192 LONG scalp 2x';
+
+  } else if(
+    Math.abs(shortTrend)>0.002 && vol>0.005 &&
+    rsi14>55 && ema9>ema21
+  ){
+    // Moderate momentum up
+    ns=0; nl=2; nsl=1.0; ntp=2.8; nag=2; nz=15;
+    desc='Momentum mod\u00e9r\u00e9 \u2192 2x';
+
+  } else if(
+    Math.abs(shortTrend)>0.002 && vol>0.005 &&
+    rsi14<45 && ema9<ema21
+  ){
+    // Moderate momentum down
+    ns=0; nl=2; nsl=1.0; ntp=2.8; nag=2; nz=15;
+    desc='Momentum baissier \u2192 2x';
+
+  } else if(vol<0.003 && bbPct>40 && bbPct<60){
+    // Range-bound tight BB — grid
+    ns=3; nl=2; nsl=0.7; ntp=1.8; nag=1; nz=10;
+    desc='Range \u2192 Grid 2x';
+
   } else {
-    // No clear signal — minimal position, wait
-    ns=0;nl=2;nsl=0.8;ntp=2;nag=1;nz=8;
-    desc='Attente signal → 2x minimal';
+    // No clear signal — stay minimal
+    ns=0; nl=1; nsl=0.8; ntp=2.2; nag=1; nz=6;
+    desc='Pas de signal \u2192 minimal';
   }
 
-  // Apply performance multiplier to size only (not leverage)
-  nz = Math.round(Math.min(30, Math.max(5, nz * perfMult)));
+  // Apply win rate multiplier to size
+  nz = Math.round(Math.min(28, Math.max(5, nz * wMult)));
 
-  // Hard caps in auto mode — protect capital
-  nl = Math.min(nl, 5);          // max 5x leverage in auto
-  nsl = Math.max(0.5, nsl);      // min 0.5% SL
-  ntp = Math.max(nsl*2, ntp);    // TP always >= 2x SL
-  nz = Math.min(25, nz);         // max 25% per position
+  // Hard limits
+  nl  = Math.min(nl, 4);
+  nsl = Math.max(0.5, parseFloat(nsl.toFixed(1)));
+  ntp = Math.max(nsl*2.5, parseFloat(ntp.toFixed(1)));
+  nz  = Math.min(25, nz);
 
-  // ── Best token scanner ──────────────────────────
-  if(autoMode){
-    let best=cur,bScore=-1;
-    TK.slice(0,20).forEach(tk=>{
-      const th=ph[tk.s];if(!th||th.length<30)return;
-      const tr=calcRSI(th,14);
-      const te9=calcEMA(th,9),te21=calcEMA(th,21),te50=calcEMA(th,50);
-      const tVol=calcVol(th,20);
-      const tTrend=Math.abs((te9-te21)/te21);
-      const tBigTrend=Math.abs((te21-te50)/te50);
-      // Score: strong trend + RSI divergence from 50 + volume
-      const score=tTrend*60+tBigTrend*40+(Math.abs(tr-50)/50)*15+tVol*10;
-      if(score>bScore){bScore=score;best=tk;}
-    });
-    if(best.s!==cur.s){
-      cur=best;buildTkBar();uPD();
-      fetchKlines(cur.s,100).then(c=>{if(c?.length>10){ph[cur.s]=c;if(MC)uMC();}});
-      addLog('AUTO','Token → '+cur.sym+' RSI='+calcRSI(ph[cur.s],14).toFixed(0),'tau');
-    }
+  // ── Best token scan ─────────────────────────────────────────────
+  // Score: EMA alignment + RSI strength + volatility + volume
+  let best=cur, bScore=-1;
+  TK.slice(0,22).forEach(tk=>{
+    const th=ph[tk.s]; if(!th||th.length<50)return;
+    const r=calcRSI(th,14), r5=calcRSI(th,5);
+    const e9=calcEMA(th,9), e21=calcEMA(th,21), e50=calcEMA(th,50);
+    const v=calcVol(th,20);
+    if(v<0.0015)return; // skip dead
+    const sTrend=Math.abs((e9-e21)/e21);
+    const mTrend=Math.abs((e21-e50)/e50);
+    // Aligned EMAs score higher
+    const aligned=(e9>e21&&e21>e50)||(e9<e21&&e21<e50)?1.5:0.8;
+    // RSI away from 50 = signal strength
+    const rsiStr=Math.abs(r-50)/50;
+    const score=(sTrend*40 + mTrend*30 + rsiStr*20 + v*10)*aligned;
+    if(score>bScore){bScore=score;best=tk;}
+  });
+  if(best.s!==cur.s){
+    cur=best; buildTkBar(); uPD();
+    fetchKlines(cur.s,100).then(c=>{if(c?.length>10){ph[cur.s]=c;if(MC)uMC();}});
+    addLog('AUTO','\u2192 '+cur.sym+' RSI='+calcRSI(ph[cur.s],14).toFixed(0)+' score='+bScore.toFixed(1),'tau');
   }
 
   setSt(ns);
-  document.getElementById('rl').value=nl;
-  document.getElementById('rsl').value=nsl;
-  document.getElementById('rtp').value=ntp;
-  document.getElementById('rs').value=nz;
-  setAg(nag);uR();
-  st('ab-sub','RSI='+rsi.toFixed(0)+' WR='+(tt>0?(wr*100).toFixed(0)+'%':'?')+' · '+desc);
-  addLog('AUTO','RSI='+rsi.toFixed(0)+' WR='+(tt>0?(wr*100).toFixed(0)+'%':'?')+' · '+desc,'tau');
+  document.getElementById('rl').value  = nl;
+  document.getElementById('rsl').value = nsl;
+  document.getElementById('rtp').value = ntp;
+  document.getElementById('rs').value  = nz;
+  setAg(nag); uR();
+
+  const wrStr = tt>0 ? ' WR='+(wr*100).toFixed(0)+'%' : '';
+  st('ab-sub','RSI='+rsi14.toFixed(0)+wrStr+' \u00b7 '+desc);
+  addLog('AUTO','RSI='+rsi14.toFixed(0)+wrStr+' \u00b7 '+desc,'tau');
 }
 
-// ════════════════════════════════════════════════
-// MAIN CHART — TP/SL lines use corrected prices
-// ════════════════════════════════════════════════
-const tpslPlugin={id:'tpsl',afterDraw(chart){
-  const pf=pos.filter(p=>p.sym===cur.s);if(!pf.length)return;
-  const ctx=chart.ctx,ya=chart.scales.y,xL=chart.chartArea.left,xR=chart.chartArea.right;
-  const slV=parseInt(document.getElementById('rsl').value);
-  const tpV=parseInt(document.getElementById('rtp').value);
-  pf.forEach(p=>{
-    const tpP=tpPrice(p.side,p.entry,tpV,p.lev);
-    const slP=slPrice(p.side,p.entry,slV,p.lev);
-    ctx.save();ctx.lineWidth=1.2;
-    [[tpP,'rgba(0,232,122,.8)','TP'],[slP,'rgba(255,51,85,.8)','SL']].forEach(([price,color,lbl])=>{
-      const y=ya.getPixelForValue(price);
-      if(y<chart.chartArea.top-2||y>chart.chartArea.bottom+2)return;
-      ctx.setLineDash([4,3]);ctx.strokeStyle=color;
-      ctx.beginPath();ctx.moveTo(xL,y);ctx.lineTo(xR,y);ctx.stroke();
-      ctx.setLineDash([]);ctx.fillStyle=color;ctx.font='bold 8px IBM Plex Mono';
-      ctx.fillText(lbl+' '+fp(price),xR-86,y-3);
-    });
-    ctx.restore();
-  });
-}};
-
-function initMC(){
-  const ctx=document.getElementById('cc').getContext('2d');
-  MC=new Chart(ctx,{
-    type:'line',
-    data:{labels:Array.from({length:200},(_,i)=>i),
-      datasets:[
-        {data:[...ph[cur.s]],borderColor:'#00e87a',borderWidth:1.5,pointRadius:0,fill:false,tension:0.3,order:1},
-        {data:Array(200).fill(null),type:'scatter',pointRadius:7,pointHoverRadius:9,backgroundColor:[],borderColor:[],borderWidth:2,order:0}
-      ]},
-    options:{responsive:true,maintainAspectRatio:false,
-      plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>{
-        if(c.datasetIndex===1)return c.raw?`${c.raw.lbl}: ${fp(c.raw.y)}`:'';
-        return fp(c.raw);
-      }}}},
-      scales:{x:{display:false},y:{display:true,position:'right',
-        ticks:{font:{size:9,family:'IBM Plex Mono'},color:'#55556a',maxTicksLimit:5,callback:v=>fp(v)},
-        grid:{color:'rgba(255,255,255,.03)',drawBorder:false}}},
-      animation:false},
-    plugins:[tpslPlugin]
-  });
-  fetchKlines(cur.s,100).then(c=>{if(c?.length>10){ph[cur.s]=c;uMC();}});
-}
-
-function uMC(){
-  if(!MC)return;
-  const h=ph[cur.s];if(!h||h.length<2)return;
-  const data=h.slice(-200);
-  // Pad to 200
-  const padded=data.length<200?[...Array(200-data.length).fill(null),...data]:data;
-  MC.data.datasets[0].data=padded;
-  // Entry markers
-  const markers=mk[cur.s]||[];
-  const sd=Array(200).fill(null),bg=Array(200).fill('transparent'),bd=Array(200).fill('transparent');
-  markers.forEach(m=>{
-    const idx=Math.min(Math.max(m.hi,0),199);
-    sd[idx]={x:idx,y:m.price,lbl:m.side+' ENTRY'};
-    bg[idx]=m.side==='LONG'?'rgba(77,136,255,.85)':'rgba(255,51,85,.85)';
-    bd[idx]=m.side==='LONG'?'#4d88ff':'#ff3355';
-  });
-  MC.data.datasets[1].data=sd;MC.data.datasets[1].backgroundColor=bg;MC.data.datasets[1].borderColor=bd;
-  const vld=padded.filter(v=>v&&!isNaN(v));if(!vld.length)return;
-  const mn=Math.min(...vld),mx=Math.max(...vld),pad=(mx-mn)*.15||mn*.01||.001;
-  MC.options.scales.y.min=mn-pad;MC.options.scales.y.max=mx+pad;
-  MC.update('none');
-}
-
-// ════════════════════════════════════════════════
-// BOT LOGIC
-// ════════════════════════════════════════════════
 function maybeOpen(){
-  if(!active||pos.length>=4)return; // max 4 concurrent (was 6)
-  // Reduce open frequency — quality over quantity
-  const prob=[0,.02,.04,.06,.09,.12][agr]||.06;
+  if(!active||pos.length>=3)return;  // max 3 concurrent positions
+
+  // Gate by aggressiveness — lower = trade less
+  const prob=[0,.02,.03,.05,.07,.10][agr]||.05;
   if(Math.random()>prob)return;
-  const lev=parseInt(document.getElementById('rl').value);
-  const sz=Math.max(10,(cap+tg)*(parseInt(document.getElementById('rs').value)/100)*(0.7+Math.random()*.3));
-  let t,side,confidence=0;
+
+  const lev = parseInt(document.getElementById('rl').value);
+  const szPct = parseFloat(document.getElementById('rs').value)/100;
+  const sz = Math.max(10, (cap+tg) * szPct * (0.8+Math.random()*.4));
+
+  let t, side, conf=0;
 
   if(autoMode){
-    // STRONG SIGNAL REQUIRED: RSI + EMA + EMA50 alignment
-    const cands=TK.slice(0,25).filter(tk=>{
-      const th=ph[tk.s];if(!th||th.length<50)return false;
-      const r=calcRSI(th,14);
-      const r5=calcRSI(th,5);
-      const e9=calcEMA(th,9),e21=calcEMA(th,21),e50=calcEMA(th,50);
+    // Require TRIPLE confirmation: RSI + EMA short + EMA medium
+    const cands = TK.slice(0,22).filter(tk=>{
+      const th=ph[tk.s]; if(!th||th.length<50)return false;
+      const r=calcRSI(th,14), r5=calcRSI(th,5);
+      const e9=calcEMA(th,9), e21=calcEMA(th,21), e50=calcEMA(th,50);
       const v=calcVol(th,20);
-      if(v<0.002)return false; // skip dead markets
-      // LONG: fast RSI high + all EMAs aligned up
-      const longSig=r>58&&r5>60&&e9>e21&&e21>e50;
-      // SHORT: fast RSI low + all EMAs aligned down
-      const shortSig=r<42&&r5<40&&e9<e21&&e21<e50;
+      if(v<0.0015)return false; // skip coma markets
+      // LONG: RSI>55 + fast RSI>58 + all EMAs up
+      const longSig  = r>55 && r5>58 && e9>e21 && e21>e50;
+      // SHORT: RSI<45 + fast RSI<42 + all EMAs down
+      const shortSig = r<45 && r5<42 && e9<e21 && e21<e50;
       return longSig||shortSig;
     }).map(tk=>{
       const th=ph[tk.s];
-      const r=calcRSI(th,14),r5=calcRSI(th,5);
-      const e9=calcEMA(th,9),e21=calcEMA(th,21),e50=calcEMA(th,50);
-      const trend=Math.abs((e9-e21)/e21);
-      const bigTrend=Math.abs((e21-e50)/e50);
-      const conf=trend*50+bigTrend*50+(Math.abs(r-50)/50)*20;
-      const side=r>58?'LONG':'SHORT';
-      return{tk,r,r5,conf,side};
+      const r=calcRSI(th,14);
+      const e9=calcEMA(th,9), e21=calcEMA(th,21), e50=calcEMA(th,50);
+      const v=calcVol(th,20);
+      const sTrend=Math.abs((e9-e21)/e21);
+      const mTrend=Math.abs((e21-e50)/e50);
+      const c=(sTrend*50+mTrend*50+(Math.abs(r-50)/50)*20+v*10);
+      return{tk, side:r>55?'LONG':'SHORT', conf:c};
     }).sort((a,b)=>b.conf-a.conf);
 
-    if(!cands.length){
-      // No strong signal — skip this tick entirely
-      return;
-    }
-    const best=cands[0];
-    t=best.tk;side=best.side;confidence=best.conf;
-  }else{
-    // Manual mode: RSI bias, current token
-    const h=ph[cur.s];
-    if(!h||h.length<14)return;
-    const rsi=calcRSI(h,14);
-    const e9=calcEMA(h,9),e21=calcEMA(h,21);
-    // Require at least RSI + EMA alignment
-    const longOK=rsi>55&&e9>e21;
-    const shortOK=rsi<45&&e9<e21;
-    if(!longOK&&!shortOK&&Math.random()>.3)return; // filter weak signals
-    t=cur;
-    side=longOK?'LONG':shortOK?'SHORT':(Math.random()>.5?'LONG':'SHORT');
+    if(!cands.length)return; // no signal = no trade
+
+    // Don't open same token+side twice
+    const best=cands.find(c=>!pos.some(p=>p.sym===c.tk.s&&p.side===c.side));
+    if(!best)return;
+    t=best.tk; side=best.side; conf=best.conf;
+
+  } else {
+    // Manual mode: still require RSI+EMA alignment
+    const h=ph[cur.s]; if(!h||h.length<50)return;
+    const r=calcRSI(h,14), r5=calcRSI(h,5);
+    const e9=calcEMA(h,9), e21=calcEMA(h,21), e50=calcEMA(h,50);
+    const longOK  = r>55 && r5>58 && e9>e21;
+    const shortOK = r<45 && r5<42 && e9<e21;
+    if(!longOK&&!shortOK)return;
+    t=cur; side=longOK?'LONG':'SHORT';
   }
 
   const ep=lp[t.s];
   if(!ep||isNaN(ep)||ep<=0)return;
 
-  // Don't open same token same side if already have position
-  if(pos.some(p=>p.sym===t.s&&p.side===side))return;
-
-  pos.push({sym:t.s,side,lev,size:sz,entry:ep});
+  pos.push({sym:t.s, side, lev, size:sz, entry:ep});
   if(!mk[t.s])mk[t.s]=[];
   const hi=Math.min(ph[t.s].length-1,199);
-  mk[t.s].push({side,price:ep,hi});
+  mk[t.s].push({side, price:ep, hi});
   if(mk[t.s].length>8)mk[t.s].shift();
   const rv=ph[t.s]?.length>14?calcRSI(ph[t.s],14).toFixed(0):'?';
-  const conf=confidence>0?` conf=${confidence.toFixed(0)}`:'';
-  addLog('ORDRE',`${side} ${t.sym} $${sz.toFixed(0)} ${lev}x @${fp(ep)} RSI=${rv}${conf}`,'to');
+  addLog('ORDRE',`${side} ${t.sym} $${sz.toFixed(0)} ${lev}x @${fp(ep)} RSI=${rv}`+(conf>0?` c=${conf.toFixed(0)}`:''),'to');
+  // Force immediate position structure render
+  renderedPosKeys='';
 }
 
 function checkAC(){
@@ -1280,35 +1235,76 @@ function uMetrics(){
 // ════════════════════════════════════════════════
 // POSITIONS — all prices via fp(), P&L via calcPnl()
 // ════════════════════════════════════════════════
+// Track rendered position keys to detect structural changes only
+let renderedPosKeys = '';
+
+function posKey(){
+  // Key changes only when positions are added/removed/reordered
+  return pos.map(p=>p.sym+p.side+p.lev+p.entry.toFixed(6)).join('|');
+}
+
 function renderPos(){
-  const list=document.getElementById('plist');
-  st('pbadge',pos.length);
-  if(!pos.length){list.innerHTML='<div class="epos"><span>&#9670;</span>Aucune position</div>';return;}
-  const slV=parseInt(document.getElementById('rsl').value);
-  const tpV=parseInt(document.getElementById('rtp').value);
-  list.innerHTML=pos.map((p,i)=>{
-    const cp=lp[p.sym],ok=cp&&!isNaN(cp)&&cp>0,cpD=ok?cp:p.entry;
+  const list = document.getElementById('plist');
+  st('pbadge', pos.length);
+
+  if(!pos.length){
+    if(list.innerHTML.indexOf('epos')===-1)
+      list.innerHTML='<div class="epos"><span>&#9670;</span>Aucune position</div>';
+    renderedPosKeys = '';
+    return;
+  }
+
+  const slV = parseFloat(document.getElementById('rsl').value);
+  const tpV = parseFloat(document.getElementById('rtp').value);
+  const newKey = posKey();
+
+  // Only rebuild DOM structure when positions change (add/remove)
+  if(newKey !== renderedPosKeys){
+    renderedPosKeys = newKey;
+    list.innerHTML = pos.map((p,i)=>{
+      const tk=TK.find(t=>t.s===p.sym), sym=tk?tk.sym:p.sym.replace('USDT','');
+      const tpP=tpPrice(p.side,p.entry,tpV,p.lev);
+      const slP=slPrice(p.side,p.entry,slV,p.lev);
+      const liqP=liqPrice(p.side,p.entry,p.lev);
+      return`<div class="pcard" id="pc-${i}">
+        <div class="pct">
+          <span class="ppair">${sym}/USDT</span>
+          <span class="pside ${p.side==='LONG'?'plong':'pshort'}">${p.side}</span>
+          <span class="plev">${p.lev}x</span>
+          <div class="ppnl">
+            <div class="ppnlv" id="pv-${i}">$0.00</div>
+            <div class="ppnlp" id="pp-${i}">0.00%</div>
+          </div>
+        </div>
+        <div class="pcb">
+          <div class="pst"><div class="psl">Entr\u00e9e</div><div class="psv">${fp(p.entry)}</div></div>
+          <div class="pst"><div class="psl">Live</div><div class="psv" id="plive-${i}">...</div></div>
+          <div class="pst"><div class="psl">Liq.</div><div class="psv" style="color:var(--r);font-size:10px;">${fp(liqP)}</div></div>
+          <div class="pst"><div class="psl">Take-profit</div><div class="psv pos">${fp(tpP)}</div></div>
+          <div class="pst"><div class="psl">Stop-loss</div><div class="psv neg">${fp(slP)}</div></div>
+          <div class="pst"><div class="psl">Taille</div><div class="psv">$${p.size.toFixed(0)}</div></div>
+        </div>
+        <div class="pact">
+          <button class="pgbtn" onclick="oPCM(${i})">&#128200; Graphique TP/SL</button>
+          <button class="pcbtn" onclick="closeP(${i})">&#10005; Fermer</button>
+        </div>
+      </div>`;
+    }).join('');
+  }
+
+  // Always update only the live values (no DOM recreation = no animation)
+  pos.forEach((p,i)=>{
+    const cp=lp[p.sym], ok=cp&&!isNaN(cp)&&cp>0, cpD=ok?cp:p.entry;
     const pnl=ok?calcPnl(p.side,p.entry,cpD,p.size,p.lev):0;
     const pp=p.entry>0?calcPnlPct(p.side,p.entry,cpD,p.lev):0;
-    const cl=pnl>=0?'pos':'neg',sg=pnl>=0?'+':'';
-    const tpP=tpPrice(p.side,p.entry,tpV,p.lev);
-    const slP=slPrice(p.side,p.entry,slV,p.lev);
-    const liqP=liqPrice(p.side,p.entry,p.lev);
-    const tk=TK.find(t=>t.s===p.sym),sym=tk?tk.sym:p.sym.replace('USDT','');
-    return`<div class="pcard">
-      <div class="pct"><span class="ppair">${sym}/USDT</span><span class="pside ${p.side==='LONG'?'plong':'pshort'}">${p.side}</span><span class="plev">${p.lev}x</span>
-        <div class="ppnl"><div class="ppnlv ${cl}">${sg}$${Math.abs(pnl).toFixed(2)}</div><div class="ppnlp ${cl}">${sg}${pp.toFixed(2)}%</div></div></div>
-      <div class="pcb">
-        <div class="pst"><div class="psl">Entr\u00e9e</div><div class="psv">${fp(p.entry)}</div></div>
-        <div class="pst"><div class="psl">Live</div><div class="psv ${cl}">${ok?fp(cpD):'...'}</div></div>
-        <div class="pst"><div class="psl">Liq.</div><div class="psv" style="color:var(--r);font-size:10px;">${fp(liqP)}</div></div>
-        <div class="pst"><div class="psl">Take-profit</div><div class="psv pos">${fp(tpP)}</div></div>
-        <div class="pst"><div class="psl">Stop-loss</div><div class="psv neg">${fp(slP)}</div></div>
-        <div class="pst"><div class="psl">Taille</div><div class="psv">$${p.size.toFixed(0)}</div></div>
-      </div>
-      <div class="pact"><button class="pgbtn" onclick="oPCM(${i})">&#128200; Graphique TP/SL</button><button class="pcbtn" onclick="closeP(${i})">&#10005; Fermer</button></div>
-    </div>`;
-  }).join('');
+    const cl=pnl>=0?'pos':'neg', sg=pnl>=0?'+':'';
+    const pve=document.getElementById('pv-'+i);
+    const ppe=document.getElementById('pp-'+i);
+    const plive=document.getElementById('plive-'+i);
+    if(pve){pve.textContent=sg+'$'+Math.abs(pnl).toFixed(2);pve.className='ppnlv '+cl;}
+    if(ppe){ppe.textContent=sg+pp.toFixed(2)+'%';ppe.className='ppnlp '+cl;}
+    if(plive){plive.textContent=ok?fp(cpD):'...';plive.className='psv '+cl;}
+  });
 }
 
 // ════════════════════════════════════════════════
